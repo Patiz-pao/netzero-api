@@ -44,7 +44,7 @@ public class DocumentServices {
                 double areaRemaining = area - areaUsed;
 
                 double excessElectricity = totalKwh - requiredElectricityNew;
-                if (excessElectricity < totalKwh){
+                if (excessElectricity < 0){
                     excessElectricity = 0;
                 }
 
