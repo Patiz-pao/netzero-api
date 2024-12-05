@@ -18,16 +18,16 @@ public class DocumentController {
 
     private DocumentServices documentServices;
 
-    @PostMapping("/calculation")
-    public GenericResponse<ResultRes> calculationData(@RequestBody CalculationReq req){
-        GenericResponse<ResultRes> response = documentServices.calculationData(req);
+    @PostMapping("/calculate-rice")
+    public GenericResponse<ResultRes> calculateRice(@RequestBody CalculationReq req){
+        GenericResponse<ResultRes> response = documentServices.calculateRice(req);
         log.info("success");
         return response;
     }
 
-    @PostMapping("/calculation_debug")
-    public GenericResponse<ResultRes> calculationData_debug(@RequestBody CalculationDebugReq req){
-        GenericResponse<ResultRes> response = documentServices.calculationDataDebug(req);
+    @PostMapping("/calculate-rice-debug")
+    public GenericResponse<ResultRes> calculateRiceDebug(@RequestBody CalculationDebugReq req){
+        GenericResponse<ResultRes> response = documentServices.calculateRiceDebug(req);
         log.info("success");
         return response;
     }

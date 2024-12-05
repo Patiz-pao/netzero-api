@@ -22,138 +22,6 @@ import static com.netzero.version.demo.Util.Constants.*;
 @RequiredArgsConstructor
 @Service
 public class DocumentServices {
-    public GenericResponse<ResultRes> calculationDataDebug(CalculationDebugReq req) {
-
-            if (req.getType().equals("rice")){
-                String rai = req.getArea();
-                double area = convertArea(rai);
-
-                double requiredElectricity = req.getElectric();
-                double requiredElectricityNew = requiredElectricity * (area / 1600);
-
-                double energyPerPanelPerDay = req.getSolarEnergyIntensity() / 3.6 * PANEL_EFFICIENCY * HOURS_OF_SUNLIGHT * SOLAR_W;
-                int numberOfPanels;
-                if (req.getSolarCell() == null){
-                    numberOfPanels = calculatePanels(requiredElectricityNew, energyPerPanelPerDay, Integer.parseInt(req.getDay()));
-                }else {
-                    numberOfPanels = req.getSolarCell();
-                }
-
-                double Day = Double.parseDouble(req.getDay());
-
-                double totalKwh = energyPerPanelPerDay * numberOfPanels * Day;
-                double areaUsed = numberOfPanels * PANEL_AREA;
-                double areaRemaining = area - areaUsed;
-
-                double excessElectricity = totalKwh - requiredElectricityNew;
-                if (excessElectricity < 0){
-                    excessElectricity = 0;
-                }
-
-                double riceResult = calculateRiceResult(area);
-                double solarResult = totalKwh * GHG_SOLAR;
-                double ghg = calculateGHG(riceResult);
-
-                double treeGHG = 0;
-                double requiredTreeCount = calculateRequiredTreeCount(ghg, solarResult, req.getTreeType());
-
-                if (req.getTreeType().equals("eucalyptus")){
-                    treeGHG = requiredTreeCount * 15;
-
-                    areaUsed = areaUsed + (requiredTreeCount * 6);
-                    areaRemaining = area - areaUsed;
-                }
-                if (req.getTreeType().equals("mango")){
-                    treeGHG = requiredTreeCount * 20;
-
-                    areaUsed = areaUsed + (requiredTreeCount * 12);
-                    areaRemaining = area - areaUsed;
-                }
-
-                double newGHG = ghg - treeGHG - solarResult;
-
-
-                ResultRes result = new ResultRes(req.getArea(),
-                        req.getSolarEnergyIntensity(),
-                        numberOfPanels,
-                        requiredElectricityNew,
-                        formatDouble(totalKwh),
-                        formatDouble(excessElectricity),
-                        areaUsed,
-                        areaRemaining,
-                        formatDouble(ghg),
-                        formatDouble(newGHG),
-                        requiredTreeCount,
-                        formatDouble(ghg - solarResult));
-
-                return new GenericResponse<>(HttpStatus.OK, "Success", result);
-            }
-
-
-        return new GenericResponse<>(HttpStatus.BAD_REQUEST, "Invalid data");
-    }
-
-    public GenericResponse<ResultRes> calculationData(CalculationReq req) {
-        List<String[]> data = loadCSV();
-
-        if (data != null) {
-            if (req.getType().equals("rice")){
-                String rai = req.getArea();
-                String tumbol = req.getTumbol();
-                double area = convertArea(rai);
-
-                double requiredElectricity = getRequiredElectricity(tumbol, data);
-                double requiredElectricityNew = requiredElectricity * (area / 1600);
-
-                double energyPerPanelPerDay = calculateEnergyPerPanel(tumbol, data);
-                int numberOfPanels = calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS);
-
-                double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS;
-                double areaUsed = numberOfPanels * PANEL_AREA;
-                double areaRemaining = area - areaUsed;
-
-                double excessElectricity = totalKwh - requiredElectricityNew;
-
-                double riceResult = calculateRiceResult(area);
-                double solarResult = totalKwh * GHG_SOLAR;
-                double ghg = calculateGHG(riceResult);
-
-                double treeGHG = 0;
-                double requiredTreeCount = calculateRequiredTreeCount(ghg, solarResult, req.getTreeType());
-                if (req.getTreeType().equals("eucalyptus")){
-                    treeGHG = requiredTreeCount * 15;
-
-                    areaUsed = areaUsed + (requiredTreeCount * 6);
-                    areaRemaining = area - areaUsed;
-                }
-                if (req.getTreeType().equals("mango")){
-                    treeGHG = requiredTreeCount * 20;
-
-                    areaUsed = areaUsed + (requiredTreeCount * 12);
-                    areaRemaining = area - areaUsed;
-                }
-
-                double newGHG = ghg - treeGHG - solarResult;
-
-                ResultRes result = new ResultRes(req.getArea(),
-                        getSolarEnergy(tumbol, data),
-                        numberOfPanels,
-                        requiredElectricityNew,
-                        formatDouble(totalKwh),
-                        formatDouble(excessElectricity),
-                        areaUsed,
-                        areaRemaining,
-                        formatDouble(ghg),
-                        formatDouble(newGHG),
-                        requiredTreeCount,
-                        formatDouble(ghg - solarResult));
-
-                return new GenericResponse<>(HttpStatus.OK, "Success", result);
-            }
-        }
-
-        return new GenericResponse<>(HttpStatus.BAD_REQUEST, "Invalid data");
-    }
 
     private List<String[]> loadCSV() {
         try (CSVReader reader = new CSVReader(new FileReader("src/main/java/com/netzero/version/demo/Util/Data/data.csv"))) {
@@ -162,6 +30,127 @@ public class DocumentServices {
             log.error("Error loading CSV data: ", e);
             return null;
         }
+    }
+
+    public GenericResponse<ResultRes> calculateRiceDebug(CalculationDebugReq req) {
+        if (req.getType().equals("rice")) {
+            return handleRiceCalculationDebug(req);
+        }
+        return new GenericResponse<>(HttpStatus.BAD_REQUEST, "Invalid data");
+    }
+
+    private GenericResponse<ResultRes> handleRiceCalculationDebug(CalculationDebugReq req) {
+    // แปลงไร่เป็นตารางเมตร
+    double area = convertToSquareMeter(req.getArea());
+    // คำนวณไฟฟ้าที่ต้องการตามพื้นที่
+    double requiredElectricity = calculateRequiredElectricityDemand(req.getElectric(), area);
+    // คำนวณพลังงานที่ผลิตได้จากแผงโซล่าร์หนึ่งแผงต่อวัน
+    double energyPerPanelPerDay = calculateEnergyPerPanelPerDay(req.getSolarEnergyIntensity());
+    // คำนวณจำนวนแผงโซล่าร์ที่ต้องการ
+    int numberOfPanels = calculateNumberOfPanels(req, requiredElectricity, energyPerPanelPerDay);
+    // คำนวณพลังงานรวมที่ผลิตได้ในจำนวนวันที่กำหนด
+    double totalKwh = calculateTotalKwh(energyPerPanelPerDay, numberOfPanels, Double.parseDouble(req.getDay()));
+    // คำนวณพื้นที่ที่ใช้โดยแผงโซล่าร์
+    double areaUsed = calculateAreaUsed(numberOfPanels);
+    // คำนวณไฟฟ้าที่ผลิตได้เกินจากที่ต้องการ
+    double excessElectricity = calculateExcessElectricity(totalKwh, requiredElectricity);
+    // คำนวณผลผลิตข้าวตามพื้นที่
+    double riceResult = calculateRiceResult(area);
+    // คำนวณการลดก๊าซเรือนกระจกจากการใช้โซล่าร์
+    double solarResult = calculateSolarResult(totalKwh);
+    // คำนวณการปล่อยก๊าซเรือนกระจกจากการปลูกข้าว
+    double ghg = calculateGHG(riceResult);
+    // คำนวณจำนวนต้นไม้ที่ต้องการเพื่อลดก๊าซเรือนกระจก
+    double requiredTreeCount = calculateRequiredTreeCount(ghg, solarResult, req.getTreeType());
+    // คำนวณการลดก๊าซเรือนกระจกจากต้นไม้
+    double treeGHG = calculateTreeGHG(req.getTreeType(), requiredTreeCount);
+    // อัปเดตพื้นที่ที่ใช้รวมถึงพื้นที่ที่ใช้โดยต้นไม้
+    areaUsed = updateAreaUsed(areaUsed, req.getTreeType(), requiredTreeCount);
+    // คำนวณพื้นที่ที่เหลือหลังจากใช้โดยแผงโซล่าร์และต้นไม้
+    double areaRemaining = calculateAreaRemaining(area, areaUsed);
+    // คำนวณก๊าซเรือนกระจกที่เหลือหลังจากการลดจากโซล่าร์และต้นไม้
+    double RemainingGHG = calculateNewGHG(ghg, treeGHG, solarResult);
+
+    ResultRes result = new ResultRes(req.getArea(),
+            req.getSolarEnergyIntensity(),
+            numberOfPanels,
+            requiredElectricity,
+            formatDouble(totalKwh),
+            formatDouble(excessElectricity),
+            areaUsed,
+            areaRemaining,
+            formatDouble(ghg),
+            formatDouble(RemainingGHG),
+            requiredTreeCount,
+            formatDouble(ghg - solarResult));
+
+    return new GenericResponse<>(HttpStatus.OK, "Success", result);
+}
+
+    public GenericResponse<ResultRes> calculateRice(CalculationReq req) {
+        List<String[]> data = loadCSV();
+
+        if (data != null) {
+            if (req.getType().equals("rice")) {
+                return handleRiceCalculation(req, data);
+            }
+        }
+
+        return new GenericResponse<>(HttpStatus.BAD_REQUEST, "Invalid data");
+    }
+
+    private GenericResponse<ResultRes> handleRiceCalculation(CalculationReq req, List<String[]> data) {
+        String rai = req.getArea();
+        String tumbol = req.getTumbol();
+        double area = convertToSquareMeter(rai);
+
+        double requiredElectricity = getRequiredElectricity(tumbol, data);
+        double requiredElectricityNew = requiredElectricity * (area / 1600);
+
+        double energyPerPanelPerDay = calculateEnergyPerPanel(tumbol, data);
+        int numberOfPanels = calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS);
+
+        double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS;
+        double areaUsed = numberOfPanels * PANEL_AREA;
+        double areaRemaining = area - areaUsed;
+
+        double excessElectricity = totalKwh - requiredElectricityNew;
+
+        double riceResult = calculateRiceResult(area);
+        double solarResult = totalKwh * GHG_SOLAR;
+        double ghg = calculateGHG(riceResult);
+
+        double treeGHG = 0;
+        double requiredTreeCount = calculateRequiredTreeCount(ghg, solarResult, req.getTreeType());
+        if (req.getTreeType().equals("eucalyptus")) {
+            treeGHG = requiredTreeCount * 15;
+
+            areaUsed = areaUsed + (requiredTreeCount * 6);
+            areaRemaining = area - areaUsed;
+        }
+        if (req.getTreeType().equals("mango")) {
+            treeGHG = requiredTreeCount * 20;
+
+            areaUsed = areaUsed + (requiredTreeCount * 12);
+            areaRemaining = area - areaUsed;
+        }
+
+        double newGHG = ghg - treeGHG - solarResult;
+
+        ResultRes result = new ResultRes(req.getArea(),
+                getSolarEnergy(tumbol, data),
+                numberOfPanels,
+                requiredElectricityNew,
+                formatDouble(totalKwh),
+                formatDouble(excessElectricity),
+                areaUsed,
+                areaRemaining,
+                formatDouble(ghg),
+                formatDouble(newGHG),
+                requiredTreeCount,
+                formatDouble(ghg - solarResult));
+
+        return new GenericResponse<>(HttpStatus.OK, "Success", result);
     }
 
     private double getRequiredElectricity(String tumbol, List<String[]> data) {
@@ -199,7 +188,7 @@ public class DocumentServices {
         return 0.0;
     }
 
-    private double convertArea(String areaString) {
+    private double convertToSquareMeter(String areaString) {
         return Double.parseDouble(areaString) * 1600;
     }
 
@@ -223,9 +212,74 @@ public class DocumentServices {
         return riceResult * GHG_RICE;
     }
 
+    private double calculateRequiredElectricityDemand(double requiredElectricity, double area) {
+        return requiredElectricity * (area / 1600);
+    }
+
+    private double calculateEnergyPerPanelPerDay(double solarEnergyIntensity) {
+        return solarEnergyIntensity / 3.6 * PANEL_EFFICIENCY * HOURS_OF_SUNLIGHT * SOLAR_W;
+    }
+
+    private int calculateNumberOfPanels(CalculationDebugReq req, double requiredElectricityNew, double energyPerPanelPerDay) {
+        if (req.getSolarCell() == null) {
+            return calculatePanels(requiredElectricityNew, energyPerPanelPerDay, Integer.parseInt(req.getDay()));
+        } else {
+            return req.getSolarCell();
+        }
+    }
+
+    private double calculateTotalKwh(double energyPerPanelPerDay, int numberOfPanels, double day) {
+        return energyPerPanelPerDay * numberOfPanels * day;
+    }
+
+    private double calculateAreaUsed(int numberOfPanels) {
+        return numberOfPanels * PANEL_AREA;
+    }
+
+    private double calculateAreaRemaining(double area, double areaUsed) {
+        return area - areaUsed;
+    }
+
+    private double calculateExcessElectricity(double totalKwh, double requiredElectricityNew) {
+        double excessElectricity = totalKwh - requiredElectricityNew;
+        return Math.max(excessElectricity, 0);
+    }
+
+    private double calculateSolarResult(double totalKwh) {
+        return totalKwh * GHG_SOLAR;
+    }
+
+    private double calculateTreeGHG(String treeType, double requiredTreeCount) {
+        if (treeType.equals("eucalyptus")) {
+            return requiredTreeCount * 15;
+        } else if (treeType.equals("mango")) {
+            return requiredTreeCount * 20;
+        } else {
+            throw new IllegalArgumentException("Invalid tree type. Must be 'eucalyptus' or 'mango'.");
+        }
+    }
+
+    private double updateAreaUsed(double areaUsed, String treeType, double requiredTreeCount) {
+        if (treeType.equals("eucalyptus")) {
+            return areaUsed + (requiredTreeCount * 6);
+        } else if (treeType.equals("mango")) {
+            return areaUsed + (requiredTreeCount * 12);
+        } else {
+            throw new IllegalArgumentException("Invalid tree type. Must be 'eucalyptus' or 'mango'.");
+        }
+    }
+
+    private double calculateNewGHG(double ghg, double treeGHG, double solarResult) {
+        return ghg - treeGHG - solarResult;
+    }
+
+    private double formatDouble(double value) {
+        return Double.parseDouble(String.format("%.2f", value));
+    }
+
     private double calculateRequiredTreeCount(double ghg, double solarResult, String treeType) {
         double totalGHG = ghg - solarResult;
-        if (totalGHG <= 0){
+        if (totalGHG <= 0) {
             return 0;
         }
 
@@ -235,10 +289,7 @@ public class DocumentServices {
             return Math.ceil(totalGHG / 20);
         } else {
             throw new IllegalArgumentException("Invalid tree type. Must be 'eucalyptus' or 'mango'.");
-        }
-    }
 
-    private double formatDouble(double value) {
-        return Double.parseDouble(String.format("%.2f", value));
+        }
     }
 }
