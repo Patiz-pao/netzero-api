@@ -10,7 +10,7 @@ import java.util.Map;
 @Getter
 public class Constants {
     public static final int HOURS_OF_SUNLIGHT = 5; // ชั่วโมงแสงแดด
-    public static final int DAYS = 180; // จำนวนวัน
+    public static final int DAYS = 120; // จำนวนวัน
     public static final double SOLAR_W = 0.45; // ประสิทธิภาพการผลิตพลังงาน
     public static final double PANEL_EFFICIENCY = 0.2; // ประสิทธิภาพแผง
     public static final double PANEL_AREA = 2; // ขนาดแผง (m^2)

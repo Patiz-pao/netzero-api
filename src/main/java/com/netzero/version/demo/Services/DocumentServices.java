@@ -34,12 +34,14 @@ public class DocumentServices {
                 double energyPerPanelPerDay = req.getSolarEnergyIntensity() / 3.6 * PANEL_EFFICIENCY * HOURS_OF_SUNLIGHT * SOLAR_W;
                 int numberOfPanels;
                 if (req.getSolarCell() == null){
-                    numberOfPanels = calculatePanels(requiredElectricityNew, energyPerPanelPerDay);
+                    numberOfPanels = calculatePanels(requiredElectricityNew, energyPerPanelPerDay, Integer.parseInt(req.getDay()));
                 }else {
                     numberOfPanels = req.getSolarCell();
                 }
 
-                double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS;
+                double Day = Double.parseDouble(req.getDay());
+
+                double totalKwh = energyPerPanelPerDay * numberOfPanels * Day;
                 double areaUsed = numberOfPanels * PANEL_AREA;
                 double areaRemaining = area - areaUsed;
 
@@ -104,7 +106,7 @@ public class DocumentServices {
                 double requiredElectricityNew = requiredElectricity * (area / 1600);
 
                 double energyPerPanelPerDay = calculateEnergyPerPanel(tumbol, data);
-                int numberOfPanels = calculatePanels(requiredElectricityNew, energyPerPanelPerDay);
+                int numberOfPanels = calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS);
 
                 double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS;
                 double areaUsed = numberOfPanels * PANEL_AREA;
@@ -201,13 +203,13 @@ public class DocumentServices {
         return Double.parseDouble(areaString) * 1600;
     }
 
-    private int calculatePanels(double requiredElectricityNew, double energyPerPanelPerDay) {
+    private int calculatePanels(double requiredElectricityNew, double energyPerPanelPerDay, int day) {
         int numberOfPanels = 1;
-        double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS;
+        double totalKwh = energyPerPanelPerDay * numberOfPanels * day;
 
         while (totalKwh < requiredElectricityNew) {
             numberOfPanels++;
-            totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS;
+            totalKwh = energyPerPanelPerDay * numberOfPanels * day;
         }
 
         return numberOfPanels;

@@ -16,4 +16,5 @@ public class CalculationDebugReq {
     private double electric;
     private double solarEnergyIntensity;
     private Integer solarCell;
+    private String day;
 }
