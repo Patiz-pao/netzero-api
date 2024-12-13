@@ -13,4 +13,5 @@ public class CalculationReq {
     private String area;
     private String type;
     private String treeType;
+    private Integer solarCell;
 }

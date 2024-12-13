@@ -75,7 +75,7 @@ public class CalculateServices {
         double requiredElectricityNew = requiredElectricity * (area / 1600);
 
         double energyPerPanelPerDay = calculateEnergyPerPanel(tumbol, data);
-        int numberOfPanels = calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS);
+        int numberOfPanels = calculateNumberOfPanelsNormal(req, requiredElectricity, energyPerPanelPerDay);
 
         double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS;
         double areaUsed = numberOfPanels * PANEL_AREA;
@@ -166,6 +166,14 @@ public class CalculateServices {
             }
         }
         return 0.0;
+    }
+
+    private int calculateNumberOfPanelsNormal(CalculationReq req, double requiredElectricityNew, double energyPerPanelPerDay) {
+        if (req.getSolarCell() == null) {
+            return calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS);
+        } else {
+            return req.getSolarCell();
+        }
     }
     //End of Normal Mode
 
