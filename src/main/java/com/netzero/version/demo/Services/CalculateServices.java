@@ -75,7 +75,7 @@ public class CalculateServices {
         double requiredElectricityNew = requiredElectricity * (area / 1600);
 
         double energyPerPanelPerDay = calculateEnergyPerPanel(tumbol, data);
-        int numberOfPanels = calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS);
+        int numberOfPanels = calculateNumberOfPanelsNormal(req, requiredElectricity, energyPerPanelPerDay);
 
         double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS;
         double areaUsed = numberOfPanels * PANEL_AREA;
@@ -123,24 +123,24 @@ public class CalculateServices {
 
     private double getRequiredElectricity(String tumbol, List<String[]> data) {
         for (String[] row : data) {
-            if (row[1].equals(tumbol)) {
-                return Double.parseDouble(row[3]);
+            if (row[2].equals(tumbol)) {
+                return Double.parseDouble(row[15]);
             }
         }
-        return 0.0;
+        throw new IllegalArgumentException("Invalid tumbol");
     }
 
     private double calculateEnergyPerPanel(String tumbol, List<String[]> data) {
         String currentMonth = LocalDate.now().getMonth().toString().substring(0, 3);
         for (String[] row : data) {
-            if (row[1].equals(tumbol)) {
+            if (row[2].equals(tumbol)) {
                 Integer index = MONTH_INDEX.get(currentMonth);
                 if (index != null) {
                     return Double.parseDouble(row[index]) / 3.6 * PANEL_EFFICIENCY * HOURS_OF_SUNLIGHT * SOLAR_W;
                 }
             }
         }
-        return 0.0;
+        throw new IllegalArgumentException("Invalid tumbol");
     }
 
     private int calculatePanels(double requiredElectricityNew, double energyPerPanelPerDay, int day) {
@@ -157,7 +157,7 @@ public class CalculateServices {
 
     private double getSolarEnergy(String tumbol, List<String[]> data) {
         for (String[] row : data) {
-            if (row[1].equals(tumbol)) {
+            if (row[2].equals(tumbol)) {
                 String currentMonth = LocalDate.now().getMonth().toString().substring(0, 3);
                 Integer index = MONTH_INDEX.get(currentMonth);
                 if (index != null) {
@@ -166,6 +166,14 @@ public class CalculateServices {
             }
         }
         return 0.0;
+    }
+
+    private int calculateNumberOfPanelsNormal(CalculationReq req, double requiredElectricityNew, double energyPerPanelPerDay) {
+        if (req.getSolarCell() == null) {
+            return calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS);
+        } else {
+            return req.getSolarCell();
+        }
     }
     //End of Normal Mode
 
