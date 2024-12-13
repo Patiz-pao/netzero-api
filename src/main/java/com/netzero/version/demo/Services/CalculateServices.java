@@ -123,24 +123,24 @@ public class CalculateServices {
 
     private double getRequiredElectricity(String tumbol, List<String[]> data) {
         for (String[] row : data) {
-            if (row[1].equals(tumbol)) {
-                return Double.parseDouble(row[3]);
+            if (row[2].equals(tumbol)) {
+                return Double.parseDouble(row[4]);
             }
         }
-        return 0.0;
+        throw new IllegalArgumentException("Invalid tumbol");
     }
 
     private double calculateEnergyPerPanel(String tumbol, List<String[]> data) {
         String currentMonth = LocalDate.now().getMonth().toString().substring(0, 3);
         for (String[] row : data) {
-            if (row[1].equals(tumbol)) {
+            if (row[2].equals(tumbol)) {
                 Integer index = MONTH_INDEX.get(currentMonth);
                 if (index != null) {
                     return Double.parseDouble(row[index]) / 3.6 * PANEL_EFFICIENCY * HOURS_OF_SUNLIGHT * SOLAR_W;
                 }
             }
         }
-        return 0.0;
+        throw new IllegalArgumentException("Invalid tumbol");
     }
 
     private int calculatePanels(double requiredElectricityNew, double energyPerPanelPerDay, int day) {
@@ -157,7 +157,7 @@ public class CalculateServices {
 
     private double getSolarEnergy(String tumbol, List<String[]> data) {
         for (String[] row : data) {
-            if (row[1].equals(tumbol)) {
+            if (row[2].equals(tumbol)) {
                 String currentMonth = LocalDate.now().getMonth().toString().substring(0, 3);
                 Integer index = MONTH_INDEX.get(currentMonth);
                 if (index != null) {
