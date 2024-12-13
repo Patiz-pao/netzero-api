@@ -53,6 +53,77 @@ public class CalculateServices {
         }
     }
 
+    private double calculateEnergyPerPanel(String tumbol, List<String[]> data) {
+        String currentMonth = LocalDate.now().getMonth().toString().substring(0, 3);
+        for (String[] row : data) {
+            if (row[2].equals(tumbol)) {
+                Integer index = MONTH_INDEX.get(currentMonth);
+                if (index != null) {
+                    return Double.parseDouble(row[index]) / 3.6 * PANEL_EFFICIENCY * HOURS_OF_SUNLIGHT * SOLAR_W;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Invalid tumbol");
+    }
+
+    private int calculatePanels(double requiredElectricityNew, double energyPerPanelPerDay, int day) {
+        int numberOfPanels = 1;
+        double totalKwh = energyPerPanelPerDay * numberOfPanels * day;
+
+        while (totalKwh < requiredElectricityNew) {
+            numberOfPanels++;
+            totalKwh = energyPerPanelPerDay * numberOfPanels * day;
+        }
+
+        return numberOfPanels;
+    }
+
+    private double getSolarEnergy(String tumbol, List<String[]> data) {
+        for (String[] row : data) {
+            if (row[2].equals(tumbol)) {
+                String currentMonth = LocalDate.now().getMonth().toString().substring(0, 3);
+                Integer index = MONTH_INDEX.get(currentMonth);
+                if (index != null) {
+                    return Double.parseDouble(row[index]);
+                }
+            }
+        }
+        return 0.0;
+    }
+
+    private int calculateNumberOfPanelsNormal(CalculationReq req, double requiredElectricityNew, double energyPerPanelPerDay) {
+        if (req.getSolarCell() == null) {
+            if (req.getType().equals("rice")) {
+                return calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS_RICE);
+            }
+            if (req.getType().equals("corn")) {
+                return 0;
+            }
+            if (req.getType().equals("banana")) {
+                return calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS_BANANA);
+            }
+        }
+        return req.getSolarCell();
+    }
+
+    private double getRequiredElectricityRice(String tumbol, List<String[]> data) {
+        for (String[] row : data) {
+            if (row[2].equals(tumbol)) {
+                return Double.parseDouble(row[15]);
+            }
+        }
+        throw new IllegalArgumentException("Invalid tumbol");
+    }
+
+    private double getRequiredElectricityBanana(String tumbol, List<String[]> data) {
+        for (String[] row : data) {
+            if (row[2].equals(tumbol)) {
+                return Double.parseDouble(row[17]);
+            }
+        }
+        throw new IllegalArgumentException("Invalid tumbol");
+    }
+
     // Normal Mode
     public GenericResponse<ResultRes> calculateRice(CalculationReq req) {
         List<String[]> data = loadCSV();
@@ -60,6 +131,9 @@ public class CalculateServices {
         if (data != null) {
             if (req.getType().equals("rice")) {
                 return handleRiceCalculation(req, data);
+            }
+            if (req.getType().equals("banana")) {
+                return handleBananaCalculation(req, data);
             }
         }
 
@@ -71,13 +145,13 @@ public class CalculateServices {
         String tumbol = req.getTumbol();
         double area = Double.parseDouble(rai) * 1600;
 
-        double requiredElectricity = getRequiredElectricity(tumbol, data);
+        double requiredElectricity = getRequiredElectricityRice(tumbol, data);
         double requiredElectricityNew = requiredElectricity * (area / 1600);
 
         double energyPerPanelPerDay = calculateEnergyPerPanel(tumbol, data);
         int numberOfPanels = calculateNumberOfPanelsNormal(req, requiredElectricity, energyPerPanelPerDay);
 
-        double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS;
+        double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS_RICE;
         double areaUsed = numberOfPanels * PANEL_AREA;
         double areaRemaining = area - areaUsed;
 
@@ -121,59 +195,59 @@ public class CalculateServices {
         return new GenericResponse<>(HttpStatus.OK, "Success", result);
     }
 
-    private double getRequiredElectricity(String tumbol, List<String[]> data) {
-        for (String[] row : data) {
-            if (row[2].equals(tumbol)) {
-                return Double.parseDouble(row[15]);
-            }
+    private GenericResponse<ResultRes> handleBananaCalculation(CalculationReq req, List<String[]> data) {
+        String rai = req.getArea();
+        String tumbol = req.getTumbol();
+        double area = Double.parseDouble(rai) * 1600;
+
+        double requiredElectricity = getRequiredElectricityBanana(tumbol, data);
+        double requiredElectricityNew = requiredElectricity * (area / 1600);
+
+        double energyPerPanelPerDay = calculateEnergyPerPanel(tumbol, data);
+        int numberOfPanels = calculateNumberOfPanelsNormal(req, requiredElectricity, energyPerPanelPerDay);
+
+        double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS_BANANA;
+        double areaUsed = numberOfPanels * PANEL_AREA;
+        double areaRemaining = area - areaUsed;
+
+        double excessElectricity = totalKwh - requiredElectricityNew;
+
+        double riceResult = (area / 1600) * BANANA_KG;
+
+        double solarResult = totalKwh * GHG_SOLAR;
+        double ghg = riceResult * GHG_BANANA;
+
+        double treeGHG = 0;
+        double requiredTreeCount = calculateRequiredTreeCount(ghg, solarResult, req.getTreeType());
+        if (req.getTreeType().equals("eucalyptus")) {
+            treeGHG = requiredTreeCount * 15;
+
+            areaUsed = areaUsed + (requiredTreeCount * 6);
+            areaRemaining = area - areaUsed;
         }
-        throw new IllegalArgumentException("Invalid tumbol");
-    }
+        if (req.getTreeType().equals("mango")) {
+            treeGHG = requiredTreeCount * 20;
 
-    private double calculateEnergyPerPanel(String tumbol, List<String[]> data) {
-        String currentMonth = LocalDate.now().getMonth().toString().substring(0, 3);
-        for (String[] row : data) {
-            if (row[2].equals(tumbol)) {
-                Integer index = MONTH_INDEX.get(currentMonth);
-                if (index != null) {
-                    return Double.parseDouble(row[index]) / 3.6 * PANEL_EFFICIENCY * HOURS_OF_SUNLIGHT * SOLAR_W;
-                }
-            }
-        }
-        throw new IllegalArgumentException("Invalid tumbol");
-    }
-
-    private int calculatePanels(double requiredElectricityNew, double energyPerPanelPerDay, int day) {
-        int numberOfPanels = 1;
-        double totalKwh = energyPerPanelPerDay * numberOfPanels * day;
-
-        while (totalKwh < requiredElectricityNew) {
-            numberOfPanels++;
-            totalKwh = energyPerPanelPerDay * numberOfPanels * day;
+            areaUsed = areaUsed + (requiredTreeCount * 12);
+            areaRemaining = area - areaUsed;
         }
 
-        return numberOfPanels;
-    }
+        double newGHG = ghg - treeGHG - solarResult;
 
-    private double getSolarEnergy(String tumbol, List<String[]> data) {
-        for (String[] row : data) {
-            if (row[2].equals(tumbol)) {
-                String currentMonth = LocalDate.now().getMonth().toString().substring(0, 3);
-                Integer index = MONTH_INDEX.get(currentMonth);
-                if (index != null) {
-                    return Double.parseDouble(row[index]);
-                }
-            }
-        }
-        return 0.0;
-    }
+        ResultRes result = new ResultRes(req.getArea(),
+                getSolarEnergy(tumbol, data),
+                numberOfPanels,
+                requiredElectricityNew,
+                formatDouble(totalKwh),
+                formatDouble(excessElectricity),
+                areaUsed,
+                areaRemaining,
+                formatDouble(ghg),
+                formatDouble(newGHG),
+                requiredTreeCount,
+                formatDouble(ghg - solarResult));
 
-    private int calculateNumberOfPanelsNormal(CalculationReq req, double requiredElectricityNew, double energyPerPanelPerDay) {
-        if (req.getSolarCell() == null) {
-            return calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS);
-        } else {
-            return req.getSolarCell();
-        }
+        return new GenericResponse<>(HttpStatus.OK, "Success", result);
     }
     //End of Normal Mode
 
