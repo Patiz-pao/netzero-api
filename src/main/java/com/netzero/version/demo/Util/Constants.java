@@ -19,17 +19,17 @@ public class Constants {
     public static final double GHG_RICE = 1.5; // ก๊าซเรือนกระจกที่ปล่อยออกมา/kg (rice)
     public static final Map<String, Integer> MONTH_INDEX = new HashMap<>();
     static {
-        MONTH_INDEX.put("JAN", 7);
-        MONTH_INDEX.put("FEB", 8);
-        MONTH_INDEX.put("MAR", 9);
-        MONTH_INDEX.put("APR", 10);
-        MONTH_INDEX.put("MAY", 11);
-        MONTH_INDEX.put("JUN", 12);
-        MONTH_INDEX.put("JUL", 13);
-        MONTH_INDEX.put("AUG", 14);
-        MONTH_INDEX.put("SEP", 15);
-        MONTH_INDEX.put("OCT", 16);
-        MONTH_INDEX.put("NOV", 17);
-        MONTH_INDEX.put("DEC", 18);
+        MONTH_INDEX.put("JAN", 3);
+        MONTH_INDEX.put("FEB", 4);
+        MONTH_INDEX.put("MAR", 5);
+        MONTH_INDEX.put("APR", 6);
+        MONTH_INDEX.put("MAY", 7);
+        MONTH_INDEX.put("JUN", 8);
+        MONTH_INDEX.put("JUL", 9);
+        MONTH_INDEX.put("AUG", 10);
+        MONTH_INDEX.put("SEP", 11);
+        MONTH_INDEX.put("OCT", 12);
+        MONTH_INDEX.put("NOV", 13);
+        MONTH_INDEX.put("DEC", 14);
     }
 }

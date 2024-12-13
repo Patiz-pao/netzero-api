@@ -124,7 +124,7 @@ public class CalculateServices {
     private double getRequiredElectricity(String tumbol, List<String[]> data) {
         for (String[] row : data) {
             if (row[2].equals(tumbol)) {
-                return Double.parseDouble(row[4]);
+                return Double.parseDouble(row[15]);
             }
         }
         throw new IllegalArgumentException("Invalid tumbol");
