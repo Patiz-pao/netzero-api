@@ -1,4 +1,4 @@
-package com.netzero.version.demo.domain;
+package com.netzero.version.demo.domain.Request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,9 +1,9 @@
 package com.netzero.version.demo.Services;
 
 import com.netzero.version.demo.Util.GenericResponse;
-import com.netzero.version.demo.domain.CalculationDebugReq;
-import com.netzero.version.demo.domain.CalculationReq;
-import com.netzero.version.demo.domain.ResultRes;
+import com.netzero.version.demo.domain.Request.CalculationDebugReq;
+import com.netzero.version.demo.domain.Request.CalculationReq;
+import com.netzero.version.demo.domain.Response.ResultRes;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import lombok.RequiredArgsConstructor;
