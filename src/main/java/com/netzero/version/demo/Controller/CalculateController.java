@@ -18,7 +18,7 @@ public class CalculateController {
 
     private CalculateServices calculateServices;
 
-    @PostMapping("/calculate-rice")
+    @PostMapping("/calculate")
     public GenericResponse<ResultRes> calculateRice(@RequestBody CalculationReq req){
         GenericResponse<ResultRes> response = calculateServices.calculateRice(req);
         log.info("success");
