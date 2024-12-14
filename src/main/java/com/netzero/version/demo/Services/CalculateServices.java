@@ -161,7 +161,7 @@ public class CalculateServices {
         double requiredElectricityNew = requiredElectricity * (area / 1600);
 
         double energyPerPanelPerDay = calculateEnergyPerPanel(tumbol, data);
-        int numberOfPanels = calculateNumberOfPanelsNormal(req, requiredElectricity, energyPerPanelPerDay);
+        int numberOfPanels = calculateNumberOfPanelsNormal(req, requiredElectricityNew, energyPerPanelPerDay);
 
         double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS_RICE;
         double areaUsed = numberOfPanels * PANEL_AREA;
@@ -216,7 +216,7 @@ public class CalculateServices {
         double requiredElectricityNew = requiredElectricity * (area / 1600);
 
         double energyPerPanelPerDay = calculateEnergyPerPanel(tumbol, data);
-        int numberOfPanels = calculateNumberOfPanelsNormal(req, requiredElectricity, energyPerPanelPerDay);
+        int numberOfPanels = calculateNumberOfPanelsNormal(req, requiredElectricityNew, energyPerPanelPerDay);
 
         double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS_CORN;
         double areaUsed = numberOfPanels * PANEL_AREA;
@@ -271,7 +271,7 @@ public class CalculateServices {
         double requiredElectricityNew = requiredElectricity * (area / 1600);
 
         double energyPerPanelPerDay = calculateEnergyPerPanel(tumbol, data);
-        int numberOfPanels = calculateNumberOfPanelsNormal(req, requiredElectricity, energyPerPanelPerDay);
+        int numberOfPanels = calculateNumberOfPanelsNormal(req, requiredElectricityNew, energyPerPanelPerDay);
 
         double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS_BANANA;
         double areaUsed = numberOfPanels * PANEL_AREA;
