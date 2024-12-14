@@ -97,7 +97,7 @@ public class CalculateServices {
                 return calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS_RICE);
             }
             if (req.getType().equals("corn")) {
-                return 0;
+                return calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS_CORN);
             }
             if (req.getType().equals("banana")) {
                 return calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS_BANANA);
