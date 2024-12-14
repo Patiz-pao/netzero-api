@@ -27,4 +27,16 @@ public class ApiScheduler {
             log.error("Error calling Ping API: {}", e.getMessage());
         }
     }
+
+    @Scheduled(fixedRate = 45000)
+    public void callPingBlogApi() {
+        String url = "https://blog-strapi-w691.onrender.com/admin/auth/login";
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            log.info("Blog Ping API called successfully");
+        } catch (Exception e) {
+            log.error("Error calling Blog API: {}", e.getMessage());
+        }
+    }
 }

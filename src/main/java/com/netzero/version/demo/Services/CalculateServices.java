@@ -115,6 +115,15 @@ public class CalculateServices {
         throw new IllegalArgumentException("Invalid tumbol");
     }
 
+    private double getRequiredElectricityCorn(String tumbol, List<String[]> data) {
+        for (String[] row : data) {
+            if (row[2].equals(tumbol)) {
+                return Double.parseDouble(row[16]);
+            }
+        }
+        throw new IllegalArgumentException("Invalid tumbol");
+    }
+
     private double getRequiredElectricityBanana(String tumbol, List<String[]> data) {
         for (String[] row : data) {
             if (row[2].equals(tumbol)) {
@@ -131,6 +140,9 @@ public class CalculateServices {
         if (data != null) {
             if (req.getType().equals("rice")) {
                 return handleRiceCalculation(req, data);
+            }
+            if (req.getType().equals("corn")) {
+                return handleCornCalculation(req, data);
             }
             if (req.getType().equals("banana")) {
                 return handleBananaCalculation(req, data);
@@ -161,6 +173,61 @@ public class CalculateServices {
 
         double solarResult = totalKwh * GHG_SOLAR;
         double ghg = riceResult * GHG_RICE;
+
+        double treeGHG = 0;
+        double requiredTreeCount = calculateRequiredTreeCount(ghg, solarResult, req.getTreeType());
+        if (req.getTreeType().equals("eucalyptus")) {
+            treeGHG = requiredTreeCount * 15;
+
+            areaUsed = areaUsed + (requiredTreeCount * 6);
+            areaRemaining = area - areaUsed;
+        }
+        if (req.getTreeType().equals("mango")) {
+            treeGHG = requiredTreeCount * 20;
+
+            areaUsed = areaUsed + (requiredTreeCount * 12);
+            areaRemaining = area - areaUsed;
+        }
+
+        double newGHG = ghg - treeGHG - solarResult;
+
+        ResultRes result = new ResultRes(req.getArea(),
+                getSolarEnergy(tumbol, data),
+                numberOfPanels,
+                requiredElectricityNew,
+                formatDouble(totalKwh),
+                formatDouble(excessElectricity),
+                areaUsed,
+                areaRemaining,
+                formatDouble(ghg),
+                formatDouble(newGHG),
+                requiredTreeCount,
+                formatDouble(ghg - solarResult));
+
+        return new GenericResponse<>(HttpStatus.OK, "Success", result);
+    }
+
+    private GenericResponse<ResultRes> handleCornCalculation(CalculationReq req, List<String[]> data) {
+        String rai = req.getArea();
+        String tumbol = req.getTumbol();
+        double area = Double.parseDouble(rai) * 1600;
+
+        double requiredElectricity = getRequiredElectricityCorn(tumbol, data);
+        double requiredElectricityNew = requiredElectricity * (area / 1600);
+
+        double energyPerPanelPerDay = calculateEnergyPerPanel(tumbol, data);
+        int numberOfPanels = calculateNumberOfPanelsNormal(req, requiredElectricity, energyPerPanelPerDay);
+
+        double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS_CORN;
+        double areaUsed = numberOfPanels * PANEL_AREA;
+        double areaRemaining = area - areaUsed;
+
+        double excessElectricity = totalKwh - requiredElectricityNew;
+
+        double riceResult = (area / 1600) * CORN_KG;
+
+        double solarResult = totalKwh * GHG_SOLAR;
+        double ghg = riceResult * GHG_CORN;
 
         double treeGHG = 0;
         double requiredTreeCount = calculateRequiredTreeCount(ghg, solarResult, req.getTreeType());
