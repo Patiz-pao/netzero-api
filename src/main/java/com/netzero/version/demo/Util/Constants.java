@@ -27,6 +27,8 @@ public class Constants {
     public static final double GHG_BANANA = 0.6; // ก๊าซเรือนกระจกที่ปล่อยออกมา/kg (banana)
     public static final int DAYS_BANANA = 300; // จำนวนวัน
 
+    public static final String API_URL = "https://script.google.com/macros/s/AKfycby1h6jkUFLSyCyvKH2GWcffr7DnN-IpqgghAnqMfBF5eMCNpp6a-oHi6wxMRa5EyEjY/exec";
+
     public static final Map<String, Integer> MONTH_INDEX = new HashMap<>();
     static {
         MONTH_INDEX.put("JAN", 3);
