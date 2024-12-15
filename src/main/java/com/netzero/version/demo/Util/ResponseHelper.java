@@ -79,6 +79,17 @@ public class ResponseHelper {
         return response(HttpStatus.OK, data);
     }
 
+    public static<T> ResponseEntity<GenericResponse<T>> responseWithMessage(HttpStatus status, String message){
+        GenericResponse<T> response = new GenericResponse<>(status, message);
+        return ResponseEntity.status(status).body(response);
+    }
+
+    public static<T> ResponseEntity<GenericResponse<T>> responseWithData(HttpStatus status, String message,T data){
+        GenericResponse<T> response = new GenericResponse<>(status, message, data);
+        return ResponseEntity.status(status).body(response);
+
+    }
+
 
 
 }

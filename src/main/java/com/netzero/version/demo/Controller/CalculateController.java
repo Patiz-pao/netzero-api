@@ -10,6 +10,8 @@ import com.netzero.version.demo.domain.Response.ResultRes;
 import io.swagger.models.Response;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,10 +24,14 @@ public class CalculateController {
     private CalculateServices calculateServices;
 
     @PostMapping("/calculate-rice")
-    public GenericResponse<ResultRes> calculateRice(@RequestBody CalculationReq req){
-        GenericResponse<ResultRes> response = calculateServices.calculateRice(req);
-        log.info("success");
-        return response;
+    public ResponseEntity<GenericResponse<ResultRes>> calculateRice(@RequestBody CalculationReq req){
+        try{
+            ResultRes result = calculateServices.calculateRice(req).getData();
+            return ResponseHelper.responseWithData(HttpStatus.OK, "Calculation success", result);
+        }
+        catch (Exception e){
+            return ResponseHelper.responseWithMessage(HttpStatus.INTERNAL_SERVER_ERROR,"Failed" + e.getMessage());
+        }
     }
 
     @PostMapping("/calculate-rice-debug")
