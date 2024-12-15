@@ -1,5 +1,6 @@
 package com.netzero.version.demo.Services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netzero.version.demo.Util.GenericResponse;
 import com.netzero.version.demo.domain.CalculationDebugReq;
 import com.netzero.version.demo.domain.CalculationReq;
@@ -10,11 +11,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.netzero.version.demo.Util.Constants.*;
 
@@ -22,15 +26,71 @@ import static com.netzero.version.demo.Util.Constants.*;
 @RequiredArgsConstructor
 @Service
 public class CalculateServices {
-    // Prepare data from CSV
+
     private List<String[]> loadCSV() {
-        try (CSVReader reader = new CSVReader(new FileReader("src/main/java/com/netzero/version/demo/Util/Data/data.csv"))) {
-            return reader.readAll();
-        } catch (IOException | CsvException e) {
-            log.error("Error loading CSV data: ", e);
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String jsonResponse = restTemplate.getForObject(API_URL, String.class);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> responseMap = objectMapper.readValue(jsonResponse, Map.class);
+
+            if (responseMap != null && "success".equals(responseMap.get("status"))) {
+                List<Map<String, Object>> apiData = (List<Map<String, Object>>) responseMap.get("data");
+
+                List<String[]> processedData = new ArrayList<>();
+
+                processedData.add(new String[]{
+                        "Province", "Tumbol", "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+                        "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
+                        "Rice", "Corn", "Banana", "KaffirLime", "Pomelo", "Coconut"
+                });
+
+                for (Map<String, Object> row : apiData) {
+                    String[] dataRow = new String[20];
+                    dataRow[0] = (String) row.get("Province");
+                    dataRow[1] = (String) row.get("Tumbol");
+                    dataRow[2] = String.valueOf(row.get("JAN"));
+                    dataRow[3] = String.valueOf(row.get("FEB"));
+                    dataRow[4] = String.valueOf(row.get("MAR"));
+                    dataRow[5] = String.valueOf(row.get("APR"));
+                    dataRow[6] = String.valueOf(row.get("MAY"));
+                    dataRow[7] = String.valueOf(row.get("JUN"));
+                    dataRow[8] = String.valueOf(row.get("JUL"));
+                    dataRow[9] = String.valueOf(row.get("AUG"));
+                    dataRow[10] = String.valueOf(row.get("SEP"));
+                    dataRow[11] = String.valueOf(row.get("OCT"));
+                    dataRow[12] = String.valueOf(row.get("NOV"));
+                    dataRow[13] = String.valueOf(row.get("DEC"));
+                    dataRow[14] = String.valueOf(row.get("Rice"));
+                    dataRow[15] = String.valueOf(row.get("Corn"));
+                    dataRow[16] = String.valueOf(row.get("Banana"));
+                    dataRow[17] = String.valueOf(row.get("KaffirLime"));
+                    dataRow[18] = String.valueOf(row.get("Pomelo"));
+                    dataRow[19] = String.valueOf(row.get("Coconut"));
+
+                    processedData.add(dataRow);
+                }
+
+                return processedData;
+            } else {
+                log.error("Failed to retrieve data from API");
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("Error loading data from API: ", e);
             return null;
         }
     }
+    // Prepare data from CSV (อาจจะกลับมาใช้)
+//    private List<String[]> loadCSV() {
+//        try (CSVReader reader = new CSVReader(new FileReader("src/main/java/com/netzero/version/demo/Util/Data/data.csv"))) {
+//            return reader.readAll();
+//        } catch (IOException | CsvException e) {
+//            log.error("Error loading CSV data: ", e);
+//            return null;
+//        }
+//    }
 
     // Function Constants
     private double formatDouble(double value) {
