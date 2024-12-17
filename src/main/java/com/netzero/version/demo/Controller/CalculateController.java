@@ -24,11 +24,4 @@ public class CalculateController {
         log.info("success");
         return response;
     }
-
-    @PostMapping("/calculate-rice-debug")
-    public GenericResponse<ResultRes> calculateRiceDebug(@RequestBody CalculationDebugReq req){
-        GenericResponse<ResultRes> response = calculateServices.calculateRiceDebug(req);
-        log.info("success");
-        return response;
-    }
 }
