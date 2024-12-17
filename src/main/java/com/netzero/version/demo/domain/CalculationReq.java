@@ -14,4 +14,6 @@ public class CalculationReq {
     private String area;
     private String crop_type;
     private int solarCell;
+    private String month_start;
+    private String month_end;
 }

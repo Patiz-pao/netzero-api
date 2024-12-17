@@ -16,4 +16,8 @@ public class ResultRes {
     private double surplusElectricity;    // จำนวนไฟฟ้าที่ผลิตมาเกิน
     private double areaUsed;              // พื้นที่ที่ใช้ในการติดตั้ง
     private double areaRemaining;         // พื้นที่ที่เหลือ
+    private double month_1;
+    private double month_2;
+    private double month_3;
+    private double month_4;
 }
