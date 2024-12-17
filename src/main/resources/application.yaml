@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: ${DB_URL}?prepareThreshold=0
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    properties:
+      hibernate:
+        default_schema: netzero
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html

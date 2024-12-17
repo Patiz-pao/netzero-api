@@ -187,7 +187,11 @@ public class CalculateServices {
                 formatDouble(totalKwh),
                 formatDouble(surplusElectricity),
                 areaUsed,
-                areaRemaining);
+                areaRemaining,
+                0.0,
+                0.0,
+                0.0,
+                0.0);
 
         return new GenericResponse<>(HttpStatus.OK, "Success", result);
     }
