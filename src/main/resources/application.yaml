@@ -1,15 +1,30 @@
+#spring:
+#  datasource:
+#    url: ${DB_URL}?prepareThreshold=0
+#    username: ${DB_USERNAME}
+#    password: ${DB_PASSWORD}
+#  jpa:
+#    properties:
+#      hibernate:
+#        default_schema: netzero
+#
+#springdoc:
+#  api-docs:
+#    path: /api-docs
+#  swagger-ui:
+#    path: /swagger-ui.html
+#
+
 spring:
   datasource:
-    url: ${DB_URL}?prepareThreshold=0
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?prepareThreshold=0
+    username: postgres.oiupcdmyaiflseufwcfw
+    password: NetZeroFinalRMUTT2564
+    driver-class-name: org.postgresql.Driver
   jpa:
     properties:
       hibernate:
         default_schema: netzero
-
-springdoc:
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /swagger-ui.html
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update

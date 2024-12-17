@@ -26,4 +26,5 @@ public class GenericResponse<T> {
         this.data = data;
     }
 
+
 }
