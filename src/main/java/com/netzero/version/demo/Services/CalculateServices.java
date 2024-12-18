@@ -1,14 +1,12 @@
 package com.netzero.version.demo.Services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netzero.version.demo.Entity.ElectricityDataEntity;
 import com.netzero.version.demo.Repository.ElectricityDataRepo;
 import com.netzero.version.demo.Util.GenericResponse;
 import com.netzero.version.demo.domain.CalculationReq;
 import com.netzero.version.demo.domain.ResultRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
