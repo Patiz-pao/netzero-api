@@ -13,5 +13,7 @@ public class CalculationReq {
     private String tumbol;
     private String area;
     private String crop_type;
-    private int solarCell;
+    private Integer solarCell;
+    private String month_start;
+    private String month_end;
 }

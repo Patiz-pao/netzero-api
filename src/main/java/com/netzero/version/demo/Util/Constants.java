@@ -13,19 +13,8 @@ public class Constants {
     public static final double SOLAR_W = 0.45; // ประสิทธิภาพการผลิตพลังงาน
     public static final double PANEL_EFFICIENCY = 0.2; // ประสิทธิภาพแผง
     public static final double PANEL_AREA = 2; // ขนาดแผง (m^2)
-    public static final double GHG_SOLAR = 0.42; // ก๊าซเรือนกระจกที่ช่วยลด/kWh (solar)
 
-    public static final int RICE_KG = 678; // ผลผลิตที่ได้เฉลี่ย 1 ไร่/กิโลกรัม
-    public static final double GHG_RICE = 1.5; // ก๊าซเรือนกระจกที่ปล่อยออกมา/kg (rice)
     public static final int DAYS_RICE = 120; // จำนวนวัน
-
-    public static final int CORN_KG = 1800; // ผลผลิตที่ได้เฉลี่ย 1 ไร่/กิโลกรัม
-    public static final double GHG_CORN = 0.4; // ก๊าซเรือนกระจกที่ปล่อยออกมา/kg (corn)
-    public static final int DAYS_CORN = 120; // จำนวนวัน
-
-    public static final int BANANA_KG = 2035; // ผลผลิตที่ได้เฉลี่ย 1 ไร่/กิโลกรัม
-    public static final double GHG_BANANA = 0.6; // ก๊าซเรือนกระจกที่ปล่อยออกมา/kg (banana)
-    public static final int DAYS_BANANA = 300; // จำนวนวัน
 
     public static final String API_URL = "https://script.google.com/macros/s/AKfycby1h6jkUFLSyCyvKH2GWcffr7DnN-IpqgghAnqMfBF5eMCNpp6a-oHi6wxMRa5EyEjY/exec";
 

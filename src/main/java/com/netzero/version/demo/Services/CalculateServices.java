@@ -1,24 +1,22 @@
 package com.netzero.version.demo.Services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netzero.version.demo.Entity.ElectricityDataEntity;
+import com.netzero.version.demo.Repository.ElectricityDataRepo;
 import com.netzero.version.demo.Util.GenericResponse;
-import com.netzero.version.demo.domain.CalculationDebugReq;
 import com.netzero.version.demo.domain.CalculationReq;
 import com.netzero.version.demo.domain.ResultRes;
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.FileReader;
-import java.io.IOException;
+import java.text.DecimalFormat;
+
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.netzero.version.demo.Util.Constants.*;
 
@@ -26,6 +24,8 @@ import static com.netzero.version.demo.Util.Constants.*;
 @RequiredArgsConstructor
 @Service
 public class CalculateServices {
+
+    private final ElectricityDataRepo electricityDataRepo;
 
     private List<String[]> loadCSV() {
         try {
@@ -41,7 +41,7 @@ public class CalculateServices {
                 List<String[]> processedData = new ArrayList<>();
 
                 processedData.add(new String[]{
-                        "Province","Amphoe", "Tumbol", "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+                        "Province", "Amphoe", "Tumbol", "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
                         "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
                         "Rice"
                 });
@@ -93,29 +93,18 @@ public class CalculateServices {
         return Double.parseDouble(String.format("%.2f", value));
     }
 
-    private double calculateEnergyPerPanel(String tumbol, List<String[]> data) {
-        String currentMonth = LocalDate.now().getMonth().toString().substring(0, 3);
-        for (String[] row : data) {
-            if (row[2].equals(tumbol)) {
-                Integer index = MONTH_INDEX.get(currentMonth);
-                if (index != null) {
-                    return Double.parseDouble(row[index]) / 3.6 * PANEL_EFFICIENCY * HOURS_OF_SUNLIGHT * SOLAR_W;
-                }
-            }
-        }
-        throw new IllegalArgumentException("Invalid tumbol");
-    }
-
-    private int calculatePanels(double requiredElectricityNew, double energyPerPanelPerDay, int day) {
+    private int calculatePanels(CalculationReq req, double requiredElectricityNew, double totalElectricity) {
         int numberOfPanels = 1;
-        double totalKwh = energyPerPanelPerDay * numberOfPanels * day;
 
-        while (totalKwh < requiredElectricityNew) {
-            numberOfPanels++;
-            totalKwh = energyPerPanelPerDay * numberOfPanels * day;
+        if (req.getSolarCell() == null) {
+            while (totalElectricity < requiredElectricityNew){
+                numberOfPanels++;
+                totalElectricity += totalElectricity;
+            }
+            return numberOfPanels;
         }
 
-        return numberOfPanels;
+        return req.getSolarCell();
     }
 
     private double getSolarEnergy(String tumbol, List<String[]> data) {
@@ -131,15 +120,6 @@ public class CalculateServices {
         return 0.0;
     }
 
-    private int calculateNumberOfPanelsNormal(CalculationReq req, double requiredElectricityNew, double energyPerPanelPerDay) {
-        if (req.getSolarCell() == null) {
-            if (req.getCrop_type().equals("rice")) {
-                return calculatePanels(requiredElectricityNew, energyPerPanelPerDay, DAYS_RICE);
-            }
-        }
-        return req.getSolarCell();
-    }
-
     private double getRequiredElectricityRice(String tumbol, List<String[]> data) {
         for (String[] row : data) {
             if (row[2].equals(tumbol)) {
@@ -149,6 +129,46 @@ public class CalculateServices {
         throw new IllegalArgumentException("Invalid tumbol");
     }
 
+    private List<String> generateMonthInRange(String start, String end){
+        List<String> months = Arrays.asList(
+                "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+                "JUL", "AUG", "SEP", "OCT", "NOV", "DEC");
+
+        int startIndex = months.indexOf(start.toUpperCase());
+        int endIndex = months.indexOf(end.toUpperCase());
+
+        if (startIndex == -1 || endIndex == -1){
+            throw new IllegalArgumentException("Invalid Month pprovided.");
+        }
+
+        List<String> result = new ArrayList<>();
+        for (int i = startIndex; i <= endIndex; i++){
+            result.add(months.get(i % 12));
+        }
+
+        return result;
+    }
+
+    private Map<String, Double> getSolarEnergyEachMonth(String tumbol, List<String[]> data, List<String> selectMonths) {
+        Map<String, Double> energyPerMonth = new LinkedHashMap<>();
+        for (String month : selectMonths) {
+            Integer index = MONTH_INDEX.get(month);
+            if (index == null) {
+                throw new IllegalArgumentException("Invalid month: " + month);
+            }
+            for (String[] row : data) {
+                if (row[2].equals(tumbol)) {
+                    energyPerMonth.put(month, Double.parseDouble(row[index]));
+                }
+            }
+        }
+        return energyPerMonth;
+    }
+
+    private String formatDoubleToString(double value) {
+        DecimalFormat df = new DecimalFormat("#.##"); // รูปแบบที่ต้องการ เช่น ทศนิยม 2 ตำแหน่ง
+        return df.format(value);
+    }
 
     // Normal Mode
     public GenericResponse<ResultRes> calculateRice(CalculationReq req) {
@@ -171,25 +191,58 @@ public class CalculateServices {
         double requiredElectricity = getRequiredElectricityRice(tumbol, data);
         double requiredElectricityNew = requiredElectricity * (area / 1600);
 
-        double energyPerPanelPerDay = calculateEnergyPerPanel(tumbol, data);
-        int numberOfPanels = calculateNumberOfPanelsNormal(req, requiredElectricityNew, energyPerPanelPerDay);
+        List<String> selectMonths = generateMonthInRange(req.getMonth_start(), req.getMonth_end());
+        Map<String, Double> monthlySolarEnergy = getSolarEnergyEachMonth(tumbol, data, selectMonths);
 
-        double totalKwh = energyPerPanelPerDay * numberOfPanels * DAYS_RICE;
+        double totalSolarEnergy = 0;
+        int monthCount = 0;
+
+        List<Map<String, Object>> monthlyDetail = new ArrayList<>();
+        for (Map.Entry<String, Double> entry : monthlySolarEnergy.entrySet()){
+            String month = entry.getKey();
+            double solarEnergy = entry.getValue();
+
+            totalSolarEnergy += solarEnergy;
+            monthCount++;
+
+            double energyPerDayPerPanel = solarEnergy / 3.6 * PANEL_EFFICIENCY * HOURS_OF_SUNLIGHT * SOLAR_W;
+
+            double totalKwhMonthly = energyPerDayPerPanel * 30;
+
+            Map<String, Object> monthlyResult = Map.of(
+                    "month", month,
+                    "solarEnergy", formatDoubleToString(solarEnergy),
+                    "totalkWh", formatDouble(totalKwhMonthly)
+            );
+            monthlyDetail.add(monthlyResult);
+        }
+
+        double averageSolarEnergy = totalSolarEnergy / monthCount;
+
+        double totalElectricity = monthlyDetail.stream()
+                .mapToDouble(month -> (double) month.get("totalkWh"))
+                .sum();
+
+        int numberOfPanels = calculatePanels(req, requiredElectricityNew, totalElectricity);
+        totalElectricity = totalElectricity * numberOfPanels;
+        double surplusElectricity = totalElectricity - requiredElectricityNew;
+
         double areaUsed = numberOfPanels * PANEL_AREA;
         double areaRemaining = area - areaUsed;
+                    ResultRes result = new ResultRes(
+                            req.getArea(),
+                            formatDouble(averageSolarEnergy),
+                            numberOfPanels,
+                            requiredElectricityNew,
+                            totalElectricity,
+                            surplusElectricity,
+                            areaUsed,
+                            areaRemaining,
+                            monthlyDetail
+            );
 
-        double surplusElectricity = totalKwh - requiredElectricityNew;
+            return new GenericResponse<>(HttpStatus.OK, "Success", result);
+        }
 
-        ResultRes result = new ResultRes(req.getArea(),
-                getSolarEnergy(tumbol, data),
-                numberOfPanels,
-                requiredElectricityNew,
-                formatDouble(totalKwh),
-                formatDouble(surplusElectricity),
-                areaUsed,
-                areaRemaining);
-
-        return new GenericResponse<>(HttpStatus.OK, "Success", result);
-    }
-    //End of Normal Mode
+        //End of Normal Mode
 }

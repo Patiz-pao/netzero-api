@@ -2,7 +2,6 @@ package com.netzero.version.demo.Controller;
 
 import com.netzero.version.demo.Services.CalculateServices;
 import com.netzero.version.demo.Util.GenericResponse;
-import com.netzero.version.demo.domain.CalculationDebugReq;
 import com.netzero.version.demo.domain.CalculationReq;
 import com.netzero.version.demo.domain.ResultRes;
 import lombok.AllArgsConstructor;
@@ -24,4 +23,5 @@ public class CalculateController {
         log.info("success");
         return response;
     }
+
 }
