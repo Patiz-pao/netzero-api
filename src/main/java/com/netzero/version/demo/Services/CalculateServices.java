@@ -193,20 +193,20 @@ public class CalculateServices {
         List<String> selectMonths = generateMonthInRange(req.getMonth_start(), req.getMonth_end());
         Map<String, Double> monthlySolarEnergy = getSolarEnergyEachMonth(tumbol, data, selectMonths);
 
+        double totalSolarEnergy = 0;
+        int monthCount = 0;
+
         List<Map<String, Object>> monthlyDetail = new ArrayList<>();
         for (Map.Entry<String, Double> entry : monthlySolarEnergy.entrySet()){
             String month = entry.getKey();
             double solarEnergy = entry.getValue();
-            double energyPerDayPerPanel = solarEnergy/ 3.6 * PANEL_EFFICIENCY * HOURS_OF_SUNLIGHT * SOLAR_W;
+
+            totalSolarEnergy += solarEnergy;
+            monthCount++;
+
+            double energyPerDayPerPanel = solarEnergy / 3.6 * PANEL_EFFICIENCY * HOURS_OF_SUNLIGHT * SOLAR_W;
 
             double totalKwhMonthly = energyPerDayPerPanel * 30;
-
-//        ElectricityDataEntity entity = new ElectricityDataEntity();
-//        entity.setResponseId(UUID.randomUUID().toString());
-//        entity.setElectricityRequired(formatDoubleToString(requiredElectricityNew));
-//        entity.setElectricityProduced(formatDoubleToString(totalKwhMonthly));
-//        entity.setElectricitySurplus(formatDoubleToString(surplusElectricityMonthly));
-//        electricityDataRepo.save(entity);
 
             Map<String, Object> monthlyResult = Map.of(
                     "month", month,
@@ -215,6 +215,8 @@ public class CalculateServices {
             );
             monthlyDetail.add(monthlyResult);
         }
+
+        double averageSolarEnergy = totalSolarEnergy / monthCount;
 
         double totalElectricity = monthlyDetail.stream()
                 .mapToDouble(month -> (double) month.get("totalkWh"))
@@ -226,10 +228,9 @@ public class CalculateServices {
 
         double areaUsed = numberOfPanels * PANEL_AREA;
         double areaRemaining = area - areaUsed;
-
                     ResultRes result = new ResultRes(
                             req.getArea(),
-                            getSolarEnergy(tumbol, data),
+                            formatDouble(averageSolarEnergy),
                             numberOfPanels,
                             requiredElectricityNew,
                             totalElectricity,
