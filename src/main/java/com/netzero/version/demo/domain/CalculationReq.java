@@ -9,9 +9,11 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CalculationReq {
     private String province;
+    private String amphoe;
     private String tumbol;
     private String area;
-    private String type;
-    private String treeType;
+    private String crop_type;
     private Integer solarCell;
+    private String month_start;
+    private String month_end;
 }
