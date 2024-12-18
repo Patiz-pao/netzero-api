@@ -2,13 +2,10 @@ package com.netzero.version.demo.Controller;
 
 import com.netzero.version.demo.Services.CalculateServices;
 import com.netzero.version.demo.Util.GenericResponse;
-import com.netzero.version.demo.domain.CalculationDebugReq;
 import com.netzero.version.demo.domain.CalculationReq;
 import com.netzero.version.demo.domain.ResultRes;
-import com.netzero.version.demo.domain.ResultResPerDay;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
