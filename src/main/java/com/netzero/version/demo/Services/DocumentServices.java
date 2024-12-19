@@ -45,11 +45,9 @@ public class DocumentServices {
         //สร้าง List ไว้ Response
         List<DataRes.FullResponse> dataResponseList = new ArrayList<>();
 
-        int responseId = 1;
-
         for (LocationEntity entity: locationEntities){
             DataRes.FullResponse fullResponse = new DataRes.FullResponse();
-            fullResponse.setResponseId(String.valueOf(responseId));
+            fullResponse.setResponseId(entity.getResponseId().toString());
 
             //nz_location
                 DataRes.LocationResponse locationResponse = new DataRes.LocationResponse();
@@ -99,7 +97,6 @@ public class DocumentServices {
 
             dataResponseList.add(fullResponse);
 
-            responseId++;
         }
 
         return dataResponseList;
