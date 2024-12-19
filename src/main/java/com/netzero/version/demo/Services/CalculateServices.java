@@ -161,7 +161,7 @@ public class CalculateServices {
         List<String[]> data = loadCSV();
 
         if (data != null) {
-            if (req.getCrop_type().equals("rice")) {
+            if (req.getCrop_type().equals("rice-rd47")) {
                 return handleRiceCalculation(req, data);
             }
         }
