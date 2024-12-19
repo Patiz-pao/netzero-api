@@ -8,7 +8,6 @@ import com.netzero.version.demo.domain.CalculationReq;
 import com.netzero.version.demo.domain.ResultRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -24,7 +23,6 @@ import static com.netzero.version.demo.Util.Constants.*;
 @Service
 public class CalculateServices {
 
-    @Autowired
     private final AreaDataRepo areaDataRepo;
     private final DataRepo dataRepo;
     private final ElectricityDataRepo electricityDataRepo;
@@ -99,29 +97,17 @@ public class CalculateServices {
 
     private int calculatePanels(CalculationReq req, double requiredElectricityNew, double totalElectricity) {
         int numberOfPanels = 1;
+        double totalElectricityNew = totalElectricity;
 
         if (req.getSolarCell() == null) {
             while (totalElectricity < requiredElectricityNew) {
                 numberOfPanels++;
-                totalElectricity += totalElectricity;
+                totalElectricity += totalElectricityNew;
             }
             return numberOfPanels;
         }
 
         return req.getSolarCell();
-    }
-
-    private double getSolarEnergy(String tumbol, List<String[]> data) {
-        for (String[] row : data) {
-            if (row[2].equals(tumbol)) {
-                String currentMonth = LocalDate.now().getMonth().toString().substring(0, 3);
-                Integer index = MONTH_INDEX.get(currentMonth);
-                if (index != null) {
-                    return Double.parseDouble(row[index]);
-                }
-            }
-        }
-        return 0.0;
     }
 
     private double getRequiredElectricityRice(String tumbol, List<String[]> data) {
@@ -133,21 +119,17 @@ public class CalculateServices {
         throw new IllegalArgumentException("Invalid tumbol");
     }
 
-    private List<String> generateMonthInRange(String start, String end) {
-        List<String> months = Arrays.asList(
-                "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-                "JUL", "AUG", "SEP", "OCT", "NOV", "DEC");
-
-        int startIndex = months.indexOf(start.toUpperCase());
-        int endIndex = months.indexOf(end.toUpperCase());
-
-        if (startIndex == -1 || endIndex == -1) {
-            throw new IllegalArgumentException("Invalid Month pprovided.");
+    private List<String> generateMonthInRange(LocalDate startDate, LocalDate endDate) {
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("Start date must be before or equal to end date.");
         }
 
         List<String> result = new ArrayList<>();
-        for (int i = startIndex; i <= endIndex; i++) {
-            result.add(months.get(i % 12));
+        LocalDate current = startDate;
+
+        while (!current.isAfter(endDate)) {
+            result.add(current.getMonth().toString().substring(0, 3).toUpperCase());
+            current = current.plusMonths(1);
         }
 
         return result;
@@ -195,7 +177,10 @@ public class CalculateServices {
         double requiredElectricity = getRequiredElectricityRice(tumbol, data);
         double requiredElectricityNew = requiredElectricity * (area / 1600);
 
-        List<String> selectMonths = generateMonthInRange(req.getMonth_start(), req.getMonth_end());
+        LocalDate startDate = req.getMonth_start();
+        LocalDate endDate = startDate.plusDays(120);
+
+        List<String> selectMonths = generateMonthInRange(startDate, endDate);
         Map<String, Double> monthlySolarEnergy = getSolarEnergyEachMonth(tumbol, data, selectMonths);
 
         double totalSolarEnergy = 0;
