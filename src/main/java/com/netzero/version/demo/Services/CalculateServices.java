@@ -6,7 +6,6 @@ import com.netzero.version.demo.Repository.*;
 import com.netzero.version.demo.Util.GenericResponse;
 import com.netzero.version.demo.domain.CalculationReq;
 import com.netzero.version.demo.domain.ResultRes;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.DecimalFormat;
-
 import java.time.LocalDate;
 import java.util.*;
 
@@ -287,12 +285,12 @@ public class CalculateServices {
         SolarEnergyEntity solarEnergy = new SolarEnergyEntity();
             solarEnergy.setResponseId(responseId);
 
-            double averageSolarIntensity = totalSolarEnergy/2;
+            double averageSolarIntensity = totalSolarEnergy/4;
             solarEnergy.setSolarIntensity(formatDoubleToString(averageSolarIntensity));
 
             Integer solarCell = req.getSolarCell();
             if (solarCell == null){
-                solarCell = calculatePanels(req,requiredElectricityNew,totalElectricity);
+                solarCell = numberOfPanels;
             }
             solarEnergy.setSolarPanelCount(solarCell);
 
