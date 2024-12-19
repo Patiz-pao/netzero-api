@@ -21,6 +21,8 @@ public class SolarEnergyEntity {
     @Column(name = "solar_intensity")
     private String solarIntensity;
 
+    //TODO:วางยาน้าาาตรงนี้ใน DB ไม่มี number_panel_count น้าๆ ตอนมัน Error:500 กุแบบไรวะ โค้ดก็ถูกหนิ หรือกุลืมที่มึงพูดนี่แหละ55555555
+
     @Column(name = "solar_panel_count")
     private Integer solarPanelCount;
 }

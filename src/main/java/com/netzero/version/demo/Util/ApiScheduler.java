@@ -18,7 +18,7 @@ public class ApiScheduler {
 
     @Scheduled(fixedRate = 45000)
     public void callPingApi() {
-        String url = "https://netzero-api-u1r8.onrender.com/ping";
+        String url = "https://netzero-api-ncrt.onrender.com/ping";
 
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
