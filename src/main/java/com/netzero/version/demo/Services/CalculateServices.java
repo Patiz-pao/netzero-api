@@ -1,8 +1,8 @@
 package com.netzero.version.demo.Services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netzero.version.demo.Entity.ElectricityDataEntity;
-import com.netzero.version.demo.Repository.ElectricityDataRepo;
+import com.netzero.version.demo.Entity.*;
+import com.netzero.version.demo.Repository.*;
 import com.netzero.version.demo.Util.GenericResponse;
 import com.netzero.version.demo.domain.CalculationReq;
 import com.netzero.version.demo.domain.ResultRes;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.DecimalFormat;
-
 import java.time.LocalDate;
 import java.util.*;
 
@@ -25,7 +24,12 @@ import static com.netzero.version.demo.Util.Constants.*;
 @Service
 public class CalculateServices {
 
+    @Autowired
+    private final AreaDataRepo areaDataRepo;
+    private final DataRepo dataRepo;
     private final ElectricityDataRepo electricityDataRepo;
+    private final LocationRepo locationRepo;
+    private final SolarEnergyRepo solarEnergyRepo;
 
     private List<String[]> loadCSV() {
         try {
@@ -97,7 +101,7 @@ public class CalculateServices {
         int numberOfPanels = 1;
 
         if (req.getSolarCell() == null) {
-            while (totalElectricity < requiredElectricityNew){
+            while (totalElectricity < requiredElectricityNew) {
                 numberOfPanels++;
                 totalElectricity += totalElectricity;
             }
@@ -129,7 +133,7 @@ public class CalculateServices {
         throw new IllegalArgumentException("Invalid tumbol");
     }
 
-    private List<String> generateMonthInRange(String start, String end){
+    private List<String> generateMonthInRange(String start, String end) {
         List<String> months = Arrays.asList(
                 "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
                 "JUL", "AUG", "SEP", "OCT", "NOV", "DEC");
@@ -137,12 +141,12 @@ public class CalculateServices {
         int startIndex = months.indexOf(start.toUpperCase());
         int endIndex = months.indexOf(end.toUpperCase());
 
-        if (startIndex == -1 || endIndex == -1){
+        if (startIndex == -1 || endIndex == -1) {
             throw new IllegalArgumentException("Invalid Month pprovided.");
         }
 
         List<String> result = new ArrayList<>();
-        for (int i = startIndex; i <= endIndex; i++){
+        for (int i = startIndex; i <= endIndex; i++) {
             result.add(months.get(i % 12));
         }
 
@@ -198,7 +202,7 @@ public class CalculateServices {
         int monthCount = 0;
 
         List<Map<String, Object>> monthlyDetail = new ArrayList<>();
-        for (Map.Entry<String, Double> entry : monthlySolarEnergy.entrySet()){
+        for (Map.Entry<String, Double> entry : monthlySolarEnergy.entrySet()) {
             String month = entry.getKey();
             double solarEnergy = entry.getValue();
 
@@ -229,20 +233,71 @@ public class CalculateServices {
 
         double areaUsed = numberOfPanels * PANEL_AREA;
         double areaRemaining = area - areaUsed;
-                    ResultRes result = new ResultRes(
-                            req.getArea(),
-                            formatDouble(averageSolarEnergy),
-                            numberOfPanels,
-                            requiredElectricityNew,
-                            totalElectricity,
-                            surplusElectricity,
-                            areaUsed,
-                            areaRemaining,
-                            monthlyDetail
-            );
 
-            return new GenericResponse<>(HttpStatus.OK, "Success", result);
+        ResultRes result = new ResultRes(
+                req.getArea(),
+                formatDouble(averageSolarEnergy),
+                numberOfPanels,
+                requiredElectricityNew,
+                totalElectricity,
+                surplusElectricity,
+                areaUsed,
+                areaRemaining,
+                monthlyDetail
+        );
+
+        //create response_id
+        String responseId = UUID.randomUUID().toString();
+
+        //LocationEntity
+        LocationEntity locationDetail = new LocationEntity();
+            locationDetail.setResponseId(responseId);
+            locationDetail.setProvince(req.getProvince());
+            locationDetail.setAmphoe(req.getAmphoe());
+            locationDetail.setTumbol(req.getTumbol());
+            locationRepo.save(locationDetail);
+
+        //AreaDataEntity
+        AreaDataEntity areaData = new AreaDataEntity();
+            areaData.setResponseId(responseId);
+            areaData.setTotalArea(formatDoubleToString(area));
+            areaData.setUsedArea(formatDoubleToString(areaUsed));
+            areaData.setRemainingArea(formatDoubleToString(areaRemaining));
+            areaDataRepo.save(areaData);
+
+        //ElectricityDataEntity
+        ElectricityDataEntity electricityData = new ElectricityDataEntity();
+            electricityData.setResponseId(responseId);
+            electricityData.setElectricityRequired(formatDoubleToString(requiredElectricityNew));
+            electricityData.setElectricityProduced(formatDoubleToString(totalElectricity));
+            electricityData.setElectricitySurplus(formatDoubleToString(surplusElectricity));
+            electricityDataRepo.save(electricityData);
+
+        //DataEntity
+        DataEntity dataEntity = new DataEntity();
+            dataEntity.setResponseId(responseId);
+            dataEntity.setCropType(req.getCrop_type());
+            dataEntity.setAreaSize(req.getArea());
+            dataEntity.setSolarPanelCount(req.getSolarCell());
+            dataRepo.save(dataEntity);
+
+        //SolarEnergyEntity
+        SolarEnergyEntity solarEnergy = new SolarEnergyEntity();
+            solarEnergy.setResponseId(responseId);
+
+            double averageSolarIntensity = totalSolarEnergy/4;
+            solarEnergy.setSolarIntensity(formatDoubleToString(averageSolarIntensity));
+
+            Integer solarCell = req.getSolarCell();
+            if (solarCell == null){
+                solarCell = numberOfPanels;
+            }
+            solarEnergy.setSolarPanelCount(solarCell);
+
+            solarEnergyRepo.save(solarEnergy);
+
+        return new GenericResponse<>(HttpStatus.OK, "Success", result);
         }
 
         //End of Normal Mode
-}
+    }
