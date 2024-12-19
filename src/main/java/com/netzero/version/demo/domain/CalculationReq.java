@@ -16,4 +16,6 @@ public class CalculationReq {
     private Integer solarCell;
     private String month_start;
     private String month_end;
+
+    //Month จะเปลี่ยนเป็น LocalDatetime
 }

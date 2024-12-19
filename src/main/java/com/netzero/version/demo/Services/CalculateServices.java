@@ -299,5 +299,6 @@ public class CalculateServices {
         return new GenericResponse<>(HttpStatus.OK, "Success", result);
         }
 
+
         //End of Normal Mode
     }
