@@ -23,7 +23,6 @@ import static com.netzero.version.demo.Util.Constants.*;
 @Service
 public class CalculateServices {
 
-    @Autowired
     private final AreaDataRepo areaDataRepo;
     private final DataRepo dataRepo;
     private final ElectricityDataRepo electricityDataRepo;
