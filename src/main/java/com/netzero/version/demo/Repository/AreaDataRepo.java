@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AreaDataRepo extends JpaRepository<AreaDataEntity, String> {
 
+    AreaDataEntity findByResponseId(String responseId);
+
 }
