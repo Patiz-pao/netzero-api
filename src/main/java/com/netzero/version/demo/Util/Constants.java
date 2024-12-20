@@ -33,4 +33,26 @@ public class Constants {
         MONTH_INDEX.put("NOV", 13);
         MONTH_INDEX.put("DEC", 14);
     }
+
+    public static final Map<String, Integer> DAYS_IN_MONTH = new HashMap<>() {{
+        put("JAN", 31);
+        put("FEB", 28); // Default to 28, adjust for leap year as needed
+        put("MAR", 31);
+        put("APR", 30);
+        put("MAY", 31);
+        put("JUN", 30);
+        put("JUL", 31);
+        put("AUG", 31);
+        put("SEP", 30);
+        put("OCT", 31);
+        put("NOV", 30);
+        put("DEC", 31);
+    }};
+
+
+    public static final double USE_TRACTOR = 31.5;
+    public static final double USE_WATER_PUMP = 29.7;
+    public static final double USE_DRONE = 7.2;
+
+    public static final double USE_JAN = 142.2;
 }

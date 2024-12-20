@@ -19,6 +19,6 @@ public class ResultRes {
     private double surplusElectricity;    // จำนวนไฟฟ้าที่ผลิตมาเกิน
     private double areaUsed;              // พื้นที่ที่ใช้ในการติดตั้ง
     private double areaRemaining;         // พื้นที่ที่เหลือ
-    //TODO: 18/12/67
     private List<Map<String, Object>> monthlyDetail;
+    private List<ActivityRes> activities;
 }

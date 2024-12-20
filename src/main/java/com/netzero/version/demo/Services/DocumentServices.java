@@ -5,13 +5,11 @@ import com.netzero.version.demo.Repository.*;
 import com.netzero.version.demo.domain.DataRes;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.awt.geom.Area;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
