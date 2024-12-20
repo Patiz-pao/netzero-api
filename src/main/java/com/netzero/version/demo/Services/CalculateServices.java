@@ -163,6 +163,16 @@ public class CalculateServices {
         if (data != null) {
             if (req.getCrop_type().equals("rice")) {
                 return handleRiceCalculation(req, data);
+            }else if (req.getCrop_type().equals("rice-rd47")){
+                return handleRiceCalculation(req, data);
+            }else if (req.getCrop_type().equals("rice-rd61")){
+                return handleRiceCalculation(req, data);
+            }else if (req.getCrop_type().equals("rice-rd57")){
+                return handleRiceCalculation(req, data);
+            }else if (req.getCrop_type().equals("rice-pathum-thani-1")){
+                return handleRiceCalculation(req, data);
+            }else if (req.getCrop_type().equals("rice-phitsanulok-2")){
+                return handleRiceCalculation(req,data);
             }
         }
 
