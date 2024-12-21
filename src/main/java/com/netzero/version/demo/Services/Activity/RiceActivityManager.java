@@ -28,7 +28,6 @@ public class RiceActivityManager {
         int currentPanels = initialPanels;
 
         for (RiceActivityType activityType : RiceActivityType.values()) {
-            int panelsAdded = 1;
             // ปรับจำนวนแผงถ้าจำเป็น
             if (activityType.getElectricityRequired() > 0 &&
                     currentElectricity < activityType.getElectricityRequired()) {
@@ -37,7 +36,6 @@ public class RiceActivityManager {
                         activityType.getElectricityRequired(),
                         dailyEnergy
                 );
-                panelsAdded += currentPanels;
             }
             ActivityRes activity = processActivity(
                     activityType,
