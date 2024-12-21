@@ -41,18 +41,22 @@ public enum RiceActivityType {
 
     private final String name;
     private final String description;
-    private final double electricityRequired;
+    private final double baseElectricityRequired;
     private final int duration;
 
-    RiceActivityType(String name, String description, double electricityRequired, int duration) {
+    RiceActivityType(String name, String description, double baseElectricityRequired, int duration) {
         this.name = name;
         this.description = description;
-        this.electricityRequired = electricityRequired;
+        this.baseElectricityRequired = baseElectricityRequired;
         this.duration = duration;
+    }
+
+    public double getElectricityRequired(double areaInRai) {
+        return this.baseElectricityRequired * areaInRai;
     }
 
     public String getName() { return name; }
     public String getDescription() { return description; }
-    public double getElectricityRequired() { return electricityRequired; }
+    public double getBaseElectricityRequired() { return baseElectricityRequired; }
     public int getDuration() { return duration; }
 }
