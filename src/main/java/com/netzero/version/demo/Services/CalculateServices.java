@@ -124,10 +124,12 @@ public class CalculateServices {
 
         List<String> result = new ArrayList<>();
         LocalDate current = startDate;
+        int monthCount = 0;
 
-        while (!current.isAfter(endDate)) {
+        while (!current.isAfter(endDate) && monthCount < 4) {
             result.add(current.getMonth().toString().substring(0, 3).toUpperCase());
             current = current.plusMonths(1);
+            monthCount++;
         }
 
         return result;
@@ -194,7 +196,7 @@ public class CalculateServices {
         double requiredElectricityNew = requiredElectricity * (area / 1600);
 
         LocalDate startDate = req.getMonth_start();
-        LocalDate endDate = startDate.plusDays(120);
+        LocalDate endDate = startDate.plusMonths(4);
 
         List<String> selectMonths = generateMonthInRange(startDate, endDate);
         Map<String, Double> monthlySolarEnergy = getSolarEnergyEachMonth(tumbol, data, selectMonths);
@@ -202,7 +204,7 @@ public class CalculateServices {
         double totalSolarEnergy = 0;
         int monthCount = 0;
 
-        List<Map<String, Object>> monthlyDetail = new ArrayList<>();
+        List<Map<String, Object>> monthlyDetailSolar = new ArrayList<>();
         for (Map.Entry<String, Double> entry : monthlySolarEnergy.entrySet()) {
             String month = entry.getKey();
             double solarEnergy = entry.getValue();
@@ -210,33 +212,29 @@ public class CalculateServices {
             totalSolarEnergy += solarEnergy;
             monthCount++;
 
-            double energyPerDayPerPanel = solarEnergy / 3.6 * PANEL_EFFICIENCY * HOURS_OF_SUNLIGHT * SOLAR_W;
-
-            double totalKwhMonthly = energyPerDayPerPanel * 30;
-
             Map<String, Object> monthlyResult = Map.of(
                     "month", month,
                     "solarEnergy", formatDoubleToString(solarEnergy),
-                    "totalkWh", formatDouble(totalKwhMonthly)
+                    "totalkWh", formatDouble(0)
             );
 
-            monthlyDetail.add(monthlyResult);
+            monthlyDetailSolar.add(monthlyResult);
         }
 
         double averageSolarEnergy = totalSolarEnergy / monthCount;
 
-        double totalElectricity = monthlyDetail.stream()
-                .mapToDouble(month -> (double) month.get("totalkWh"))
-                .sum();
+        int numberOfPanels;
+        if (req.getSolarCell() == null) {
+            numberOfPanels = 1;
+        }else {
+            numberOfPanels = req.getSolarCell();
+        }
+        double surplusElectricity;
 
-        int numberOfPanels = calculatePanels(req, requiredElectricityNew, totalElectricity);
-        totalElectricity = totalElectricity * numberOfPanels;
-        double surplusElectricity = totalElectricity - requiredElectricityNew;
-
-        double areaUsed = numberOfPanels * PANEL_AREA;
+        double areaUsed = 0;
         double areaRemaining = area - areaUsed;
 
-        double solarEnergyMonth = getSolarEnergyForMonth(monthlyDetail, startDate);
+        double solarEnergyMonth = getSolarEnergyForMonth(monthlyDetailSolar, startDate);
         double dailyEnergy = solarCalculator.calculateDailyEnergy(solarEnergyMonth, 1); // ต่อ 1 แผง
 
         List<ActivityRes> activities;
@@ -248,7 +246,7 @@ public class CalculateServices {
                     startDate,
                     dailyEnergy,
                     numberOfPanels,
-                    monthlyDetail
+                    monthlyDetailSolar
             );
 
             // Find maximum panels added in the loop
@@ -263,7 +261,7 @@ public class CalculateServices {
 
         } while (maxPanelsAdded > numberOfPanels);
 
-        List<Map<String, Object>> monthlyDetailNew = new ArrayList<>();
+        List<Map<String, Object>> monthlyDetail = new ArrayList<>();
         for (Map.Entry<String, Double> entry : monthlySolarEnergy.entrySet()) {
             String month = entry.getKey();
             double solarEnergy = entry.getValue();
@@ -283,10 +281,10 @@ public class CalculateServices {
                     "totalkWh", formatDouble(totalKwhMonthly)
             );
 
-            monthlyDetailNew.add(monthlyResult);
+            monthlyDetail.add(monthlyResult);
         }
 
-        totalElectricity = monthlyDetailNew.stream()
+        double totalElectricity = monthlyDetail.stream()
                 .mapToDouble(month -> (double) month.get("totalkWh"))
                 .sum();
 
@@ -302,7 +300,7 @@ public class CalculateServices {
                 surplusElectricity,
                 areaUsed,
                 areaRemaining,
-                monthlyDetailNew,
+                monthlyDetail,
                 activities
         );
 
