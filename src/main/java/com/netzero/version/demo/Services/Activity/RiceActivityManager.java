@@ -83,6 +83,7 @@ public class RiceActivityManager {
                 electricity,
                 activityType.getElectricityRequired(),
                 electricity - activityType.getElectricityRequired(),
+                activityType.getDescription(),
                 panelsAdded
         );
     }
