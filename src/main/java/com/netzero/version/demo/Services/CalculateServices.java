@@ -246,7 +246,8 @@ public class CalculateServices {
                     startDate,
                     dailyEnergy,
                     numberOfPanels,
-                    monthlyDetailSolar
+                    monthlyDetailSolar,
+                    Double.parseDouble(req.getArea())
             );
 
             // Find maximum panels added in the loop

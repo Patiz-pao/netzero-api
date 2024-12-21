@@ -20,7 +20,8 @@ public class RiceActivityManager {
             LocalDate startDate,
             double dailyEnergy,
             int initialPanels,
-            List<Map<String, Object>> monthlyDetail
+            List<Map<String, Object>> monthlyDetail,
+            double areaInRai
     ) {
         List<ActivityRes> activities = new ArrayList<>();
         LocalDate currentDate = startDate;
@@ -28,24 +29,25 @@ public class RiceActivityManager {
         int currentPanels = initialPanels;
 
         for (RiceActivityType activityType : RiceActivityType.values()) {
+
+            double requiredElectricity = activityType.getElectricityRequired(areaInRai);
             // ปรับจำนวนแผงถ้าจำเป็น
-            if (activityType.getElectricityRequired() > 0 &&
-                    currentElectricity < activityType.getElectricityRequired()) {
+            if (requiredElectricity > 0 && currentElectricity < requiredElectricity) {
                 currentPanels = adjustPanels(
                         currentElectricity,
-                        activityType.getElectricityRequired(),
+                        requiredElectricity,
                         dailyEnergy
                 );
             }
-            ActivityRes activity = processActivity(
+             ActivityRes activity = processActivity(
                     activityType,
                     currentDate,
                     currentElectricity,
                     dailyEnergy,
                     currentPanels,
                     currentPanels,
-                    monthlyDetail
-            );
+                    monthlyDetail,areaInRai
+             );
             activities.add(activity);
             currentDate = activity.getEndDate().plusDays(1);
             currentElectricity = activity.getRemainingElectricity();
@@ -61,7 +63,8 @@ public class RiceActivityManager {
             double dailyEnergy,
             int panels,
             int panelsAdded,
-            List<Map<String, Object>> monthlyDetail
+            List<Map<String, Object>> monthlyDetail,
+            double areaInRai
     ) {
 
         double solarEnergyMonth = getSolarEnergyForMonth(monthlyDetail, currentDate);
@@ -74,13 +77,15 @@ public class RiceActivityManager {
             electricity += dailyEnergy * panels;
         }
 
+        double requiredElectricity = activityType.getElectricityRequired(areaInRai);
+
         return new ActivityRes(
                 activityType.getName(),
                 currentDate,
                 currentDate.plusDays(activityType.getDuration() - 1),
                 electricity,
-                activityType.getElectricityRequired(),
-                electricity - activityType.getElectricityRequired(),
+                requiredElectricity,
+                electricity - requiredElectricity,
                 activityType.getDescription(),
                 panelsAdded
         );
