@@ -291,6 +291,7 @@ public class CalculateServices {
                 .sum();
 
         surplusElectricity =  totalElectricity - requiredElectricityNew;
+        areaUsed = numberOfPanels * PANEL_AREA;
 
         ResultRes result = new ResultRes(
                 req.getArea(),
