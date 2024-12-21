@@ -18,5 +18,6 @@ public class ActivityRes {
     private double electricityGenerated; // พลังงานที่ผลิตได้ kWh
     private double electricityUsed; // พลังงานที่ใช้ใน kWh
     private double remainingElectricity; // พลังงานที่เหลือหลังจบ
+    private String description; //รายละเอียดแต่ละขั้นตอน
     private int panelsAdded; // จำนวนแผงที่เพิ่ม
 }
