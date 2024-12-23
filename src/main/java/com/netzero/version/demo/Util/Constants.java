@@ -12,9 +12,7 @@ public class Constants {
     public static final int HOURS_OF_SUNLIGHT = 5; // ชั่วโมงแสงแดด
     public static final double SOLAR_W = 0.45; // ประสิทธิภาพการผลิตพลังงาน
     public static final double PANEL_EFFICIENCY = 0.2; // ประสิทธิภาพแผง
-    public static final double PANEL_AREA = 2; // ขนาดแผง (m^2)
-
-    public static final int DAYS_RICE = 120; // จำนวนวัน
+    public static final double PANEL_AREA = 2.5; // ขนาดแผง (m^2)
 
     public static final String API_URL = "https://script.google.com/macros/s/AKfycby1h6jkUFLSyCyvKH2GWcffr7DnN-IpqgghAnqMfBF5eMCNpp6a-oHi6wxMRa5EyEjY/exec";
 
@@ -36,7 +34,7 @@ public class Constants {
 
     public static final Map<String, Integer> DAYS_IN_MONTH = new HashMap<>() {{
         put("JAN", 31);
-        put("FEB", 28); // Default to 28, adjust for leap year as needed
+        put("FEB", 28);
         put("MAR", 31);
         put("APR", 30);
         put("MAY", 31);
@@ -53,6 +51,4 @@ public class Constants {
     public static final double USE_TRACTOR = 31.5;
     public static final double USE_WATER_PUMP = 29.7;
     public static final double USE_DRONE = 7.2;
-
-    public static final double USE_JAN = 142.2;
 }
