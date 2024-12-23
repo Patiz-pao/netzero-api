@@ -53,6 +53,7 @@ public class DataRes {
 
     @Data
     public static class DataResponseList {
+        private static final long serialVersionUID = 1L;
         private List<DataResponseList> responses;
     }
 }

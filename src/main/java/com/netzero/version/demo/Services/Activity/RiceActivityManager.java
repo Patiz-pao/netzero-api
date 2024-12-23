@@ -1,7 +1,11 @@
 package com.netzero.version.demo.Services.Activity;
 
 import com.netzero.version.demo.domain.ActivityRes;
-import com.netzero.version.demo.domain.Enums.RiceActivityType;
+import com.netzero.version.demo.domain.CalculationReq;
+import com.netzero.version.demo.domain.Enums.Rice_RD47_ActivityType;
+import com.netzero.version.demo.domain.Enums.Rice_RD57_ActivityType;
+import com.netzero.version.demo.domain.Enums.Rice_RD61_ActivityType;
+import com.netzero.version.demo.domain.Enums.interfaceClass.RiceActivityType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +21,7 @@ public class RiceActivityManager {
     private final SolarEnergyCalculator solarCalculator;
 
     public List<ActivityRes> calculateActivities(
+            CalculationReq req,
             LocalDate startDate,
             double dailyEnergy,
             int initialPanels,
@@ -28,8 +33,20 @@ public class RiceActivityManager {
         double currentElectricity = 0;
         int currentPanels = initialPanels;
 
-        for (RiceActivityType activityType : RiceActivityType.values()) {
+        Enum<?>[] activityTypes;
 
+        if ("rice-rd47".equals(req.getCrop_type())) {
+            activityTypes = Rice_RD47_ActivityType.values();
+        } else if ("rice-rd61".equals(req.getCrop_type())) {
+            activityTypes = Rice_RD61_ActivityType.values();
+        } else if ("rice-rd57".equals(req.getCrop_type())) {
+            activityTypes = Rice_RD57_ActivityType.values();
+        } else {
+            throw new IllegalArgumentException("Unsupported crop type: " + req.getCrop_type());
+        }
+
+        for (Enum<?> activityTypeEnum : activityTypes) {
+            RiceActivityType activityType = (RiceActivityType) activityTypeEnum;
             double requiredElectricity = activityType.getElectricityRequired(areaInRai);
             // ปรับจำนวนแผงถ้าจำเป็น
             if (requiredElectricity > 0 && currentElectricity < requiredElectricity) {
@@ -68,7 +85,7 @@ public class RiceActivityManager {
     ) {
 
         double solarEnergyMonth = getSolarEnergyForMonth(monthlyDetail, currentDate);
-        double dailyEnergyForActivity = solarCalculator.calculateDailyEnergy(solarEnergyMonth, panels);
+        double dailyEnergyForActivity = solarCalculator.calculateDailyEnergy(solarEnergyMonth, panels); // พลังงานที่ผลิตได้ต่อวัน เอาไว้ใช้ Debug ดูเฉยๆ ไม่ต้องลบออก
 
         double electricity = initialElectricity;
 

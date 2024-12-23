@@ -1,8 +1,12 @@
 package com.netzero.version.demo.domain.Enums;
 
+import com.netzero.version.demo.domain.Enums.interfaceClass.RiceActivityType;
+import lombok.Getter;
+
 import static com.netzero.version.demo.Util.Constants.*;
 
-public enum RiceActivityType {
+@Getter
+public enum Rice_RD47_ActivityType implements RiceActivityType {
     STORE_ELECTRICITY("ช่วงเตรียมพื้นที่นา","ติดตั้งโซล่าเซลล์และกักเก็บปริมาณไฟฟ้า", 0, 7),
     PLOWING_FIRST("ไถดะ","ใช้รถไถนาไฟฟ้าไถดินลึก 15 - 20 ซม. เพื่อพลิกดินและทำลายวัชพืช หลังไถ ทิ้งดินไว้ให้วัชพืชย่อยสลาย", USE_TRACTOR, 1),
     REST_SOIL("ช่วงพักดิน","พักดินทิ้งไว้ 5 วัน เพื่อให้ดินปรับตัวและวัชพืชที่ตายย่อยสลาย", 0, 5),
@@ -37,14 +41,12 @@ public enum RiceActivityType {
     WAITING_TO_HARVEST("ระบายน้ำออกจากนา","ระบายน้ำออกทั้งหมดในช่วง 5-6 วันก่อนการเก็บเกี่ยว", 0, 6),
     HARVEST("เก็บเกี่ยวข้าว","หลังการเก็บเกี่ยว นำข้าวไปตากแดดเพื่อลดความชื้นเหลือ 13-15% ก่อนการเก็บรักษาหรือส่งขาย", 0, 4);
 
-
-
     private final String name;
     private final String description;
     private final double baseElectricityRequired;
     private final int duration;
 
-    RiceActivityType(String name, String description, double baseElectricityRequired, int duration) {
+    Rice_RD47_ActivityType(String name, String description, double baseElectricityRequired, int duration) {
         this.name = name;
         this.description = description;
         this.baseElectricityRequired = baseElectricityRequired;
@@ -55,8 +57,4 @@ public enum RiceActivityType {
         return this.baseElectricityRequired * areaInRai;
     }
 
-    public String getName() { return name; }
-    public String getDescription() { return description; }
-    public double getBaseElectricityRequired() { return baseElectricityRequired; }
-    public int getDuration() { return duration; }
 }

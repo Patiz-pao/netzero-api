@@ -8,6 +8,7 @@ import com.opencsv.exceptions.CsvException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.FileReader;
@@ -37,7 +38,9 @@ public class DocumentServices {
     }
 
     //TODO: 19/12/67 getAll Service
+    @Cacheable(value = "getAllData")
     public List<DataRes.FullResponse> getAllData(){
+        log.info("Fetching data from database...Krubfuiiiii");
         //ดึงข้อมูลมาจากฐานข้อมูล
         List<LocationEntity> locationEntities = locationRepo.findAll();
         //สร้าง List ไว้ Response
