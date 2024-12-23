@@ -243,6 +243,7 @@ public class CalculateServices {
         // Loop until panels added is less than number of panels needed
         do {
             activities = activityManager.calculateActivities(
+                    req,
                     startDate,
                     dailyEnergy,
                     numberOfPanels,
