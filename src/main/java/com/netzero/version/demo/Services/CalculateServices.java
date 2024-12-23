@@ -229,10 +229,6 @@ public class CalculateServices {
         }else {
             numberOfPanels = req.getSolarCell();
         }
-        double surplusElectricity;
-
-        double areaUsed = 0;
-        double areaRemaining = area - areaUsed;
 
         double solarEnergyMonth = getSolarEnergyForMonth(monthlyDetailSolar, startDate);
         double dailyEnergy = solarCalculator.calculateDailyEnergy(solarEnergyMonth, 1); // ต่อ 1 แผง
@@ -290,8 +286,9 @@ public class CalculateServices {
                 .mapToDouble(month -> (double) month.get("totalkWh"))
                 .sum();
 
-        surplusElectricity =  totalElectricity - requiredElectricityNew;
-        areaUsed = numberOfPanels * PANEL_AREA;
+        double surplusElectricity =  totalElectricity - requiredElectricityNew;
+        double areaUsed = numberOfPanels * PANEL_AREA;
+        double areaRemaining = area - areaUsed;
 
         ResultRes result = new ResultRes(
                 req.getArea(),
