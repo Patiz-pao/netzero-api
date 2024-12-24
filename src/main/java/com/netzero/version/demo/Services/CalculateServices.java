@@ -95,21 +95,6 @@ public class CalculateServices {
         return Double.parseDouble(String.format("%.2f", value));
     }
 
-    private int calculatePanels(CalculationReq req, double requiredElectricityNew, double totalElectricity) {
-        int numberOfPanels = 1;
-        double totalElectricityNew = totalElectricity;
-
-        if (req.getSolarCell() == null) {
-            while (totalElectricity < requiredElectricityNew) {
-                numberOfPanels++;
-                totalElectricity += totalElectricityNew;
-            }
-            return numberOfPanels;
-        }
-
-        return req.getSolarCell();
-    }
-
     private double getRequiredElectricityRice(String tumbol, List<String[]> data) {
         for (String[] row : data) {
             if (row[2].equals(tumbol)) {
@@ -238,7 +223,6 @@ public class CalculateServices {
         List<ActivityRes> activities;
         int maxPanelsAdded;
 
-        // Loop until panels added is less than number of panels needed
         do {
             activities = activityManager.calculateActivities(
                     req,
@@ -256,7 +240,7 @@ public class CalculateServices {
                     .orElse(0);
 
             if (maxPanelsAdded > numberOfPanels) {
-                numberOfPanels++; // Increase number of panels if needed
+                numberOfPanels++;
             }
 
         } while (maxPanelsAdded > numberOfPanels);

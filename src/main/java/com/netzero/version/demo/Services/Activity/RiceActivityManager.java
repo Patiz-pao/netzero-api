@@ -53,7 +53,8 @@ public class RiceActivityManager {
                 currentPanels = adjustPanels(
                         currentElectricity,
                         requiredElectricity,
-                        dailyEnergy
+                        dailyEnergy,
+                        initialPanels
                 );
             }
              ActivityRes activity = processActivity(
@@ -63,11 +64,12 @@ public class RiceActivityManager {
                     dailyEnergy,
                     currentPanels,
                     currentPanels,
-                    monthlyDetail,areaInRai
+                    monthlyDetail,
+                    areaInRai
              );
             activities.add(activity);
             currentDate = activity.getEndDate().plusDays(1);
-            currentElectricity = activity.getRemainingElectricity();
+            currentElectricity = activity.getBatteryElectricity();
         }
 
         return activities;
@@ -92,6 +94,7 @@ public class RiceActivityManager {
         // คำนวณไฟฟ้าที่ผลิตได้ในช่วงเวลาของกิจกรรม
         for (int i = 0; i < activityType.getDuration(); i++) {
             electricity += dailyEnergy * panels;
+
         }
 
         double requiredElectricity = activityType.getElectricityRequired(areaInRai);
@@ -108,8 +111,11 @@ public class RiceActivityManager {
         );
     }
 
-    private int adjustPanels(double currentElectricity, double required, double dailyEnergy) {
+    private int adjustPanels(double currentElectricity, double required, double dailyEnergy, int initialPanels) {
         int additionalPanels = (int) Math.ceil((required - currentElectricity) / dailyEnergy);
+        if (initialPanels > additionalPanels) {
+            return initialPanels;
+        }
         return Math.max(1, additionalPanels);
     }
 
