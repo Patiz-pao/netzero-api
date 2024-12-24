@@ -14,7 +14,7 @@ public class Constants {
     public static final double PANEL_EFFICIENCY = 0.2; // ประสิทธิภาพแผง
     public static final double PANEL_AREA = 2.5; // ขนาดแผง (m^2)
 
-    public static final String API_URL = "https://script.google.com/macros/s/AKfycby1h6jkUFLSyCyvKH2GWcffr7DnN-IpqgghAnqMfBF5eMCNpp6a-oHi6wxMRa5EyEjY/exec";
+    public static final String API_URL = "https://script.google.com/macros/s/AKfycbzX0vCjQIJQtKQkB5padeviu0LS5IkEichpSuuIVkd4KXOVxol4ZZy5M6O3jiWx0F31/exec";
 
     public static final Map<String, Integer> MONTH_INDEX = new HashMap<>();
     static {

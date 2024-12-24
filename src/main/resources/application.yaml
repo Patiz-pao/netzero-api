@@ -20,18 +20,3 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
-
-#
-#spring:
-#  datasource:
-#    url: jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?prepareThreshold=0
-#    username: postgres.oiupcdmyaiflseufwcfw
-#    password: NetZeroFinalRMUTT2564
-#    driver-class-name: org.postgresql.Driver
-#  jpa:
-#    properties:
-#      hibernate:
-#        default_schema: netzero
-#    database-platform: org.hibernate.dialect.PostgreSQLDialect
-#    hibernate:
-#      ddl-auto: update
