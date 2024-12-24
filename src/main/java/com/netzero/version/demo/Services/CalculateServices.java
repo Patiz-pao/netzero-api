@@ -11,6 +11,7 @@ import com.netzero.version.demo.domain.CalculationReq;
 import com.netzero.version.demo.domain.ResultRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -36,6 +37,7 @@ public class CalculateServices {
     private final RiceActivityManager activityManager;
 
     // Load CSV from API
+    @Cacheable("apiDataCache")
     private List<String[]> loadCSV() {
         try {
             RestTemplate restTemplate = new RestTemplate();
