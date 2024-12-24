@@ -2,9 +2,12 @@ package com.netzero.version.demo.Util;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Setter
 @Getter
@@ -47,8 +50,35 @@ public class Constants {
         put("DEC", 31);
     }};
 
-
     public static final double USE_TRACTOR = 31.5;
     public static final double USE_WATER_PUMP = 29.7;
     public static final double USE_DRONE = 7.2;
+
+    //TODO:redis cache API_URL
+    private static final String CACHE_KEY = "api_response";
+    private static RedisTemplate<String, String> redisTemplate;
+
+    public static void setRedisTemplate(RedisTemplate<String, String> template){
+        redisTemplate = template;
+    }
+
+    public static String getApiResponse(){
+        if (redisTemplate == null){
+            throw new IllegalStateException("RedisTemplate is not initialized. Please set it using setRedisTemplate().");
+        }
+
+        String cacheResponse = redisTemplate.opsForValue().get(CACHE_KEY);
+        if (cacheResponse != null){
+            return cacheResponse;
+        }
+
+        RestTemplate restTemplate = new RestTemplate();
+        String apiResponse = restTemplate.getForObject(API_URL, String.class);
+
+        if (apiResponse != null){
+            redisTemplate.opsForValue().set(CACHE_KEY, apiResponse, 1, TimeUnit.HOURS);
+        }
+
+        return apiResponse;
+    }
 }
