@@ -2,6 +2,7 @@ package com.netzero.version.demo.Services.Activity;
 
 import com.netzero.version.demo.domain.ActivityRes;
 import com.netzero.version.demo.domain.CalculationReq;
+import com.netzero.version.demo.domain.Enums.Rice_Phitsanulok_2_ActivityType;
 import com.netzero.version.demo.domain.Enums.Rice_RD47_ActivityType;
 import com.netzero.version.demo.domain.Enums.Rice_RD57_ActivityType;
 import com.netzero.version.demo.domain.Enums.Rice_RD61_ActivityType;
@@ -41,6 +42,8 @@ public class RiceActivityManager {
             activityTypes = Rice_RD61_ActivityType.values();
         } else if ("rice-rd57".equals(req.getCrop_type())) {
             activityTypes = Rice_RD57_ActivityType.values();
+        } else if ("rice-phitsanulok-2".equals(req.getCrop_type())) {
+            activityTypes = Rice_Phitsanulok_2_ActivityType.values();
         } else {
             throw new IllegalArgumentException("Unsupported crop type: " + req.getCrop_type());
         }
