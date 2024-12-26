@@ -49,7 +49,7 @@ public class RiceActivityManager {
              );
             activities.add(activity);
             currentDate = activity.getEndDate().plusDays(1);
-            currentElectricity = activity.getBatteryElectricity();
+            currentElectricity = activity.getRemainingElectricity();
         }
 
         return activities;

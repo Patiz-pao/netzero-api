@@ -16,8 +16,8 @@ public class ActivityRes {
     private LocalDate startDate;
     private LocalDate endDate;
     private double electricityGenerated; // พลังงานที่ผลิตได้ kWh
-    private double electricityUsed; // พลังงานที่ใช้ใน kWh
-    private double batteryElectricity; // พลังงานที่เหลือหลังจบ
+    private double electricityUsed; // พลังงานที่ใช้ในในขั้นตอนนั้น kWh
+    private double remainingElectricity; // พลังงานที่ผลิตได้ทั้งหมด
     private String description; //รายละเอียดแต่ละขั้นตอน
     private int panelsAdded; // จำนวนแผงที่เพิ่ม
 }
