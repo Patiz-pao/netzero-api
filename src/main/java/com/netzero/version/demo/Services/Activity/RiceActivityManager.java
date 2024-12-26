@@ -5,6 +5,7 @@ import com.netzero.version.demo.domain.CalculationReq;
 import com.netzero.version.demo.domain.Enums.*;
 import com.netzero.version.demo.domain.Enums.interfaceClass.RiceActivityType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class RiceActivityManager {
@@ -22,42 +24,20 @@ public class RiceActivityManager {
             CalculationReq req,
             LocalDate startDate,
             double dailyEnergy,
-            int initialPanels,
+            int numberOfPanels,
             List<Map<String, Object>> monthlyDetail,
             double areaInRai
     ) {
         List<ActivityRes> activities = new ArrayList<>();
         LocalDate currentDate = startDate;
         double currentElectricity = 0;
-        int currentPanels = initialPanels;
+        int currentPanels = numberOfPanels;
 
-        Enum<?>[] activityTypes;
-
-        if ("rice-rd47".equals(req.getCrop_type())) {
-            activityTypes = Rice_RD47_ActivityType.values();
-        } else if ("rice-rd61".equals(req.getCrop_type())) {
-            activityTypes = Rice_RD61_ActivityType.values();
-        } else if ("rice-rd57".equals(req.getCrop_type())) {
-            activityTypes = Rice_RD57_ActivityType.values();
-        } else if ("rice-pathum-thani-1".equals(req.getCrop_type())) {
-            activityTypes = Rice_Pathum_1_ActivityType.values();
-        } else if ("rice-phitsanulok-2".equals(req.getCrop_type())) {
-            activityTypes = Rice_Phitsanulok_2_ActivityType.values();
-        } else {
-            throw new IllegalArgumentException("Unsupported crop type: " + req.getCrop_type());
-        }
+        Enum<?>[] activityTypes = getActivityTypes(req);
 
         for (Enum<?> activityTypeEnum : activityTypes) {
             RiceActivityType activityType = (RiceActivityType) activityTypeEnum;
-            double requiredElectricity = activityType.getElectricityRequired(areaInRai);
-            // ปรับจำนวนแผงถ้าจำเป็น
-            if (requiredElectricity > 0 && currentElectricity < requiredElectricity) {
-                currentPanels = adjustPanels(
-                        currentElectricity,
-                        requiredElectricity,
-                        dailyEnergy
-                );
-            }
+
              ActivityRes activity = processActivity(
                     activityType,
                     currentDate,
@@ -89,14 +69,26 @@ public class RiceActivityManager {
         double solarEnergyMonth = getSolarEnergyForMonth(monthlyDetail, currentDate);
         double dailyEnergyForActivity = solarCalculator.calculateDailyEnergy(solarEnergyMonth, panels); // พลังงานที่ผลิตได้ต่อวัน เอาไว้ใช้ Debug ดูเฉยๆ ไม่ต้องลบออก
 
-        double electricity = initialElectricity;
+        double electricity = 0;
+        double requiredElectricity;
 
-        // คำนวณไฟฟ้าที่ผลิตได้ในช่วงเวลาของกิจกรรม
-        for (int i = 0; i < activityType.getDuration(); i++) {
-            electricity += dailyEnergy * panels;
-        }
+        activityType.resetDuration();
 
-        double requiredElectricity = activityType.getElectricityRequired(areaInRai);
+        do {
+            // คำนวณไฟฟ้าที่ผลิตได้ในช่วงเวลาของกิจกรรม
+            for (int i = 0; i < activityType.getDuration(); i++) {
+                electricity += dailyEnergy * panels;
+            }
+
+            requiredElectricity = activityType.getElectricityRequired(areaInRai);
+
+            if (electricity < requiredElectricity) {
+                electricity = 0;
+                activityType.setDuration(activityType.getDuration() + 1);
+            }
+
+        }while (electricity < requiredElectricity);
+
 
         return new ActivityRes(
                 activityType.getName(),
@@ -106,13 +98,8 @@ public class RiceActivityManager {
                 requiredElectricity,
                 electricity - requiredElectricity,
                 activityType.getDescription(),
-                panelsAdded
+                panels
         );
-    }
-
-    private int adjustPanels(double currentElectricity, double required, double dailyEnergy) {
-        int additionalPanels = (int) Math.ceil((required - currentElectricity) / dailyEnergy);
-        return Math.max(1, additionalPanels);
     }
 
     private double getSolarEnergyForMonth(List<Map<String, Object>> monthlyDetail, LocalDate date) {
@@ -121,5 +108,24 @@ public class RiceActivityManager {
                         .equals(((String) month.get("month")).substring(0, 3)))
                 .mapToDouble(month -> Double.parseDouble((String) month.get("solarEnergy")))
                 .sum();
+    }
+
+    private static Enum<?>[] getActivityTypes(CalculationReq req) {
+        Enum<?>[] activityTypes;
+
+        if ("rice-rd47".equals(req.getCrop_type())) {
+            activityTypes = Rice_RD47_ActivityType.values();
+        } else if ("rice-rd61".equals(req.getCrop_type())) {
+            activityTypes = Rice_RD61_ActivityType.values();
+        } else if ("rice-rd57".equals(req.getCrop_type())) {
+            activityTypes = Rice_RD57_ActivityType.values();
+        } else if ("rice-pathum-thani-1".equals(req.getCrop_type())) {
+            activityTypes = Rice_Pathum_1_ActivityType.values();
+        }else if ("rice-phitsanulok-2".equals(req.getCrop_type())) {
+            activityTypes = Rice_Phitsanulok_2_ActivityType.values();
+        }else {
+            throw new IllegalArgumentException("Unsupported crop type: " + req.getCrop_type());
+        }
+        return activityTypes;
     }
 }

@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class Constants {
     public static final int HOURS_OF_SUNLIGHT = 5; // ชั่วโมงแสงแดด
-    public static final double SOLAR_W = 0.45; // ประสิทธิภาพการผลิตพลังงาน
+    public static final double SOLAR_W = 0.60; // ประสิทธิภาพการผลิตพลังงาน
     public static final double PANEL_EFFICIENCY = 0.2; // ประสิทธิภาพแผง
     public static final double PANEL_AREA = 2.5; // ขนาดแผง (m^2)
 

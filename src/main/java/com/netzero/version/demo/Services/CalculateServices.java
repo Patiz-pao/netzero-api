@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static com.netzero.version.demo.Util.Constants.*;
@@ -213,29 +214,48 @@ public class CalculateServices {
         double dailyEnergy = solarCalculator.calculateDailyEnergy(solarEnergyMonth, 1); // ต่อ 1 แผง
 
         List<ActivityRes> activities;
-        int maxPanelsAdded;
+
+        boolean isValidDuration;
+        int additionalPanels = 0;
 
         do {
+            // รีเซ็ตค่าต่างๆ ก่อนคำนวณใหม่
+            final int currentPanels = numberOfPanels + additionalPanels;
+
             activities = activityManager.calculateActivities(
                     req,
                     startDate,
                     dailyEnergy,
-                    numberOfPanels,
+                    currentPanels,
                     monthlyDetailSolar,
                     Double.parseDouble(req.getArea())
             );
 
-            // Find maximum panels added in the loop
-            maxPanelsAdded = activities.stream()
-                    .mapToInt(ActivityRes::getPanelsAdded)
-                    .max()
-                    .orElse(0);
+            LocalDate firstStartDate = activities.get(0).getStartDate();
+            LocalDate lastEndDate = activities.get(activities.size() - 1).getEndDate();
 
-            if (maxPanelsAdded > numberOfPanels) {
-                numberOfPanels++;
+            long totalDuration = ChronoUnit.DAYS.between(firstStartDate, lastEndDate);
+
+            long DayLimit = switch (req.getCrop_type()) {
+                case "rice-rd47" -> 124;
+                case "rice-rd61" -> 118;
+                case "rice-rd57" -> 127;
+                case "rice-pathum-thani-1" -> 125;
+                case "rice-phitsanulok-2" -> 141;
+                default -> 0;
+            };
+
+            if (totalDuration > DayLimit) {
+                additionalPanels++;
+                isValidDuration = false;
+            } else {
+                isValidDuration = true;
             }
 
-        } while (maxPanelsAdded > numberOfPanels);
+
+            numberOfPanels = currentPanels;
+
+        } while (!isValidDuration);
 
         List<Map<String, Object>> monthlyDetail = new ArrayList<>();
         for (Map.Entry<String, Double> entry : monthlySolarEnergy.entrySet()) {
@@ -264,6 +284,12 @@ public class CalculateServices {
                 .mapToDouble(month -> (double) month.get("totalkWh"))
                 .sum();
 
+
+        double totalUsed = activities.stream()
+                .filter(activity -> activity.getElectricityUsed() > 0)  // กรองเฉพาะค่าที่ไม่เป็น 0
+                .mapToDouble(activity -> activity.getElectricityUsed())  // แปลงเป็นค่า double
+                .sum();  // คำนวณผลรวม
+
         double surplusElectricity =  totalElectricity - requiredElectricityNew;
         double areaUsed = numberOfPanels * PANEL_AREA;
         double areaRemaining = area - areaUsed;
@@ -273,7 +299,7 @@ public class CalculateServices {
                 formatDouble(averageSolarEnergy),
                 numberOfPanels,
                 requiredElectricityNew,
-                totalElectricity,
+                totalUsed,
                 surplusElectricity,
                 areaUsed,
                 areaRemaining,
