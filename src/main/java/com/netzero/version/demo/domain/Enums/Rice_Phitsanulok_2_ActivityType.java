@@ -6,13 +6,15 @@ import lombok.Getter;
 import static com.netzero.version.demo.Util.Constants.*;
 
 @Getter
-public enum Rice_RD47_ActivityType implements RiceActivityType {
+public enum Rice_Phitsanulok_2_ActivityType implements RiceActivityType {
+
     STORE_ELECTRICITY("ช่วงเตรียมพื้นที่นา","ติดตั้งโซล่าเซลล์และกักเก็บปริมาณไฟฟ้า", 0, 1),
     PLOWING_FIRST("ไถดะ","ใช้รถไถนาไฟฟ้าไถดินลึก 15 - 20 ซม. เพื่อพลิกดินและทำลายวัชพืช หลังไถ ทิ้งดินไว้ให้วัชพืชย่อยสลาย", USE_TRACTOR, 1),
     REST_SOIL("ช่วงพักดิน","พักดินทิ้งไว้ 5 วัน เพื่อให้ดินปรับตัวและวัชพืชที่ตายย่อยสลาย", 0, 5),
     PLOWING_SECOND("ไถแปร","ใช้รถไถนาไฟฟ้าไถอีกครั้งเพื่อย่อยดินและกำจัดวัชพืช ปรับระดับพื้นที่ให้เรียบ", USE_TRACTOR, 1),
     REST_SOIL_SECOND("พักดิน","ช่วงพักดินเพื่อเตรียมกำจัดวัชพืชอีกครั้ง และเตรียมการสูบน้ำ", 0, 1),
-    HARROW_FIRST_AND_PUMPING_WATER_FIRST("คราด และ สูบน้ำ (ครั้งที่ 1)","ใช้คราดดินปรับหน้าดินให้เรียบเสมอ ทำทันทีหลังการไถแปร (1-2 วันก่อนหว่านเมล็ด) และ ใช้เครื่องสูบน้ำไฟฟ้า สูบน้ำเข้านาให้ดินชุ่มชื้น ระดับน้ำ 3-5 ซม.", USE_TRACTOR + USE_WATER_PUMP, 1),
+    HARROW_FIRST("คราด(ครั้งที่ 1)","ใช้คราดดินปรับหน้าดินให้เรียบเสมอ ทำทันทีหลังการไถแปร (1-2 วันก่อนหว่านเมล็ด) ", USE_TRACTOR , 1),
+    PUMPING_WATER_FIRST("สูบน้ำ(ครั้งที่ 1)","ใช้เครื่องสูบน้ำไฟฟ้า สูบน้ำเข้านาให้ดินชุ่มชื้น ระดับน้ำ 3-5 ซม.",USE_WATER_PUMP,0),
     DRONE_FIRST("ช่วงการหว่านเมล็ดพันธุ์","ช่วงการหว่านเมล็ดพันธุ์ ใช้โดรนหว่านเมล็ดพันธุ์ หว่านเมล็ดพันธุ์ กข47 ใช้เมล็ดพันธุ์ที่แช่น้ำและพักจนรากเริ่มงอก หว่านด้วยโดรนหว่านเมล็ดพันธุ์", USE_DRONE, 1),
     STORE_ELECTRICITY_SECOND("ช่วงรอข้าวแตกกอ","หากน้ำแห้ง ควรสูบน้ำเติมเพื่อป้องกันไม่ให้ข้าวขาดน้ำ แต่ไม่ควรปล่อยให้น้ำขังลึกเกินไป", 0, 6),
     PUMPING_WATER_SECOND("สูบน้ำเข้านา ( ครั้งที่ 2 ) ช่วงการดูแลต้นข้าว","หลังหว่าน 7 วัน เพื่อกระตุ้นการงอก รักษาระดับน้ำในนา 3 - 5 ซม. ตลอดระยะการเจริญเติบโต", USE_WATER_PUMP, 1),
@@ -36,8 +38,9 @@ public enum Rice_RD47_ActivityType implements RiceActivityType {
     STORE_ELECTRICITY_ELEVEN("ช่วงระยะข้าวออกรวง","รวงข้าวเริ่มแทงออกมาจากปล้องสุดท้าย (ปล้องคอรวง) เมล็ดในรวงเริ่มพัฒนา โดยจะเป็นระยะที่ต้นข้าวใช้พลังงานและสารอาหารสูง", 0, 6),
     PUMPING_WATER_NINE("สูบน้ำ (ครั้งที่ 9)","ใช้เครื่องสูบน้ำไฟฟ้า สูบน้ำเข้านาให้ดินชุ่มชื้น ระดับน้ำ 3-5 ซม.", USE_WATER_PUMP, 1),
     STORE_ELECTRICITY_TWELVE("ช่วงระยะข้าวออกรวง","ห้ามปล่อยให้นาแห้งในช่วงนี้ เพราะอาจทำให้เมล็ดลีบหรือพัฒนาไม่สมบูรณ์ เฝ้าระวังศัตรูพืช เช่น เพลี้ยกระโดด หนอนกอ และโรคเมล็ดด่าง", 0, 9),
-    PUMPING_WATER_TEN("สูบน้ำ (ครั้งที่ 10)","ใช้เครื่องสูบน้ำไฟฟ้า สูบน้ำเข้านาให้ดินชุ่มชื้น ระดับน้ำ 3-5 ซม.", USE_WATER_PUMP, 1),
-    STORE_ELECTRICITY_THIRTEEN("ช่วงระยะข้าวสุกแก่","เมล็ดข้าวเปลี่ยนสีจากเขียวเป็นเหลืองทอง รวงข้าวเอนลงจากน้ำหนักเมล็ดที่เต็มสมบูรณ์ ปลายของรวงข้าวแห้งและกรอบ", 0, 16),
+    PUMPING_WATER_TEN("สูบน้ำ (ครั้งที่ 10)","ใช้เครื่องสูบน้ำไฟฟ้า สูบน้ำเข้านาให้ดินชุ่มชื้น ระดับน้ำ 3-5 ซม.", USE_WATER_PUMP, 11),
+    PUMPING_WATER_ELEVEN("สูบน้ำ (ครั้งที่ 11)","ใช้เครื่องสูบน้ำไฟฟ้า สูบน้ำเข้านาให้ดินชุ่มชื้น ระดับน้ำ 3-5 ซม.", USE_WATER_PUMP, 1),
+    STORE_ELECTRICITY_THIRTEEN("ช่วงระยะข้าวสุกแก่","เมล็ดข้าวเปลี่ยนสีจากเขียวเป็นเหลืองทอง รวงข้าวเอนลงจากน้ำหนักเมล็ดที่เต็มสมบูรณ์ ปลายของรวงข้าวแห้งและกรอบ", 0, 22),
     WAITING_TO_HARVEST("ระบายน้ำออกจากนา","ระบายน้ำออกทั้งหมดในช่วง 5-6 วันก่อนการเก็บเกี่ยว", 0, 6),
     HARVEST("เก็บเกี่ยวข้าว","หลังการเก็บเกี่ยว นำข้าวไปตากแดดเพื่อลดความชื้นเหลือ 13-15% ก่อนการเก็บรักษาหรือส่งขาย", 0, 4);
 
@@ -47,7 +50,7 @@ public enum Rice_RD47_ActivityType implements RiceActivityType {
     private final int duration;
     private int currentDuration;
 
-    Rice_RD47_ActivityType(String name, String description, double baseElectricityRequired, int duration) {
+    Rice_Phitsanulok_2_ActivityType(String name, String description, double baseElectricityRequired, int duration) {
         this.name = name;
         this.description = description;
         this.baseElectricityRequired = baseElectricityRequired;
@@ -74,5 +77,4 @@ public enum Rice_RD47_ActivityType implements RiceActivityType {
     public double getElectricityRequired(double areaInRai) {
         return this.baseElectricityRequired * areaInRai;
     }
-
 }

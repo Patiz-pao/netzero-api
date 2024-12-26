@@ -2,19 +2,22 @@ package com.netzero.version.demo.Util;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Setter
 @Getter
 public class Constants {
     public static final int HOURS_OF_SUNLIGHT = 5; // ชั่วโมงแสงแดด
-    public static final double SOLAR_W = 0.45; // ประสิทธิภาพการผลิตพลังงาน
+    public static final double SOLAR_W = 0.60; // ประสิทธิภาพการผลิตพลังงาน
     public static final double PANEL_EFFICIENCY = 0.2; // ประสิทธิภาพแผง
     public static final double PANEL_AREA = 2.5; // ขนาดแผง (m^2)
 
-    public static final String API_URL = "https://script.google.com/macros/s/AKfycbzX0vCjQIJQtKQkB5padeviu0LS5IkEichpSuuIVkd4KXOVxol4ZZy5M6O3jiWx0F31/exec";
+    public static final String API_URL = "https://script.google.com/macros/s/AKfycby1h6jkUFLSyCyvKH2GWcffr7DnN-IpqgghAnqMfBF5eMCNpp6a-oHi6wxMRa5EyEjY/exec";
 
     public static final Map<String, Integer> MONTH_INDEX = new HashMap<>();
     static {
@@ -47,8 +50,34 @@ public class Constants {
         put("DEC", 31);
     }};
 
-
     public static final double USE_TRACTOR = 31.5;
     public static final double USE_WATER_PUMP = 29.7;
     public static final double USE_DRONE = 7.2;
+
+    public static final double BATTERY_CAPACITY = 15.0;
+
+    private static final String CACHE_KEY = "api_response";
+
+    @Setter
+    private static RedisTemplate<String, String> redisTemplate;
+
+    public static String getApiResponse(){
+        if (redisTemplate == null){
+            throw new IllegalStateException("RedisTemplate is not initialized. Please set it using setRedisTemplate().");
+        }
+
+        String cacheResponse = redisTemplate.opsForValue().get(CACHE_KEY);
+        if (cacheResponse != null){
+            return cacheResponse;
+        }
+
+        RestTemplate restTemplate = new RestTemplate();
+        String apiResponse = restTemplate.getForObject(API_URL, String.class);
+
+        if (apiResponse != null){
+            redisTemplate.opsForValue().set(CACHE_KEY, apiResponse, 1, TimeUnit.HOURS);
+        }
+
+        return apiResponse;
+    }
 }
