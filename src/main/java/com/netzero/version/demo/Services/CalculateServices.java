@@ -286,23 +286,37 @@ public class CalculateServices {
 
 
         double totalUsed = activities.stream()
-                .filter(activity -> activity.getElectricityUsed() > 0)  // กรองเฉพาะค่าที่ไม่เป็น 0
-                .mapToDouble(activity -> activity.getElectricityUsed())  // แปลงเป็นค่า double
-                .sum();  // คำนวณผลรวม
+                .filter(activity -> activity.getElectricityUsed() > 0)
+                .mapToDouble(ActivityRes::getElectricityGenerated)
+                .sum();
 
         double surplusElectricity =  totalElectricity - requiredElectricityNew;
         double areaUsed = numberOfPanels * PANEL_AREA;
         double areaRemaining = area - areaUsed;
+
+        int areaRai = Integer.parseInt(rai);
+
+        int ResultRice = switch (req.getCrop_type()) {
+            case "rice-rd47" -> 793 * areaRai;
+            case "rice-rd61" -> 1004 * areaRai;
+            case "rice-rd57" -> 714 * areaRai;
+            case "rice-pathum-thani-1" -> 712 * areaRai;
+            case "rice-phitsanulok-2" -> 807 * areaRai;
+            default -> 0;
+        };
 
         ResultRes result = new ResultRes(
                 req.getArea(),
                 formatDouble(averageSolarEnergy),
                 numberOfPanels,
                 requiredElectricityNew,
-                totalUsed,
+                formatDouble(totalUsed),
+                formatDouble(totalUsed - requiredElectricityNew),
+                totalElectricity,
                 surplusElectricity,
                 areaUsed,
                 areaRemaining,
+                ResultRice,
                 monthlyDetail,
                 activities
         );
