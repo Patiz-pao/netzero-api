@@ -17,7 +17,7 @@ public class Constants {
     public static final double PANEL_EFFICIENCY = 0.2; // ประสิทธิภาพแผง
     public static final double PANEL_AREA = 2.5; // ขนาดแผง (m^2)
 
-    public static final String API_URL = "https://script.google.com/macros/s/AKfycbzX0vCjQIJQtKQkB5padeviu0LS5IkEichpSuuIVkd4KXOVxol4ZZy5M6O3jiWx0F31/exec";
+    public static final String API_URL = "https://script.google.com/macros/s/AKfycby1h6jkUFLSyCyvKH2GWcffr7DnN-IpqgghAnqMfBF5eMCNpp6a-oHi6wxMRa5EyEjY/exec";
 
     public static final Map<String, Integer> MONTH_INDEX = new HashMap<>();
     static {
@@ -54,13 +54,12 @@ public class Constants {
     public static final double USE_WATER_PUMP = 29.7;
     public static final double USE_DRONE = 7.2;
 
-    //TODO:redis cache API_URL
-    private static final String CACHE_KEY = "api_response";
-    private static RedisTemplate<String, String> redisTemplate;
+    public static final double BATTERY_CAPACITY = 15.0;
 
-    public static void setRedisTemplate(RedisTemplate<String, String> template){
-        redisTemplate = template;
-    }
+    private static final String CACHE_KEY = "api_response";
+
+    @Setter
+    private static RedisTemplate<String, String> redisTemplate;
 
     public static String getApiResponse(){
         if (redisTemplate == null){
