@@ -40,7 +40,7 @@ public class RiceActivityManager {
         } else if ("rice-rd57".equals(req.getCrop_type())) {
             activityTypes = Rice_RD57_ActivityType.values();
         } else if ("rice-pathum-thani-1".equals(req.getCrop_type())) {
-            activityTypes = Rice_Pathum_ActivityType.values();
+            activityTypes = Rice_Pathum_1_ActivityType.values();
         } else if ("rice-phitsanulok-2".equals(req.getCrop_type())) {
             activityTypes = Rice_Phitsanulok_2_ActivityType.values();
         } else {

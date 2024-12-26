@@ -156,19 +156,11 @@ public class CalculateServices {
         List<String[]> data = loadCSV();
 
         if (data != null) {
-            if (req.getCrop_type().equals("rice-rd47")) {
-                return handleRiceCalculation(req, data);
-            }else if (req.getCrop_type().equals("rice-rd47")){
-                return handleRiceCalculation(req, data);
-            }else if (req.getCrop_type().equals("rice-rd61")){
-                return handleRiceCalculation(req, data);
-            }else if (req.getCrop_type().equals("rice-rd57")){
-                return handleRiceCalculation(req, data);
-            }else if (req.getCrop_type().equals("rice-pathum-thani-1")){
-                return handleRiceCalculation(req, data);
-            }else if (req.getCrop_type().equals("rice-phitsanulok-2")){
-                return handleRiceCalculation(req,data);
-            }
+            return switch (req.getCrop_type()) {
+                case "rice-rd47", "rice-rd61", "rice-rd57", "rice-pathum-thani-1", "rice-phitsanulok-2" ->
+                        handleRiceCalculation(req, data);
+                default -> new GenericResponse<>(HttpStatus.BAD_REQUEST, "Invalid data");
+            };
         }
 
         return new GenericResponse<>(HttpStatus.BAD_REQUEST, "Invalid data");
