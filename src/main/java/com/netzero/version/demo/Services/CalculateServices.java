@@ -15,6 +15,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -221,7 +222,7 @@ public class CalculateServices {
 
         do {
             if (loopCounter > 1000) {
-                throw new IllegalArgumentException("ไม่สามารถคำนวณได้เพราะว่าจำนวนแผงโซล่าเซลล์ไม่สามารถผลิตไฟฟ้าได้ทันภายในระยะเวลาที่ปลูกของพันธุ์นั้นๆ");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ไม่สามารถคำนวณได้เพราะว่าจำนวนแผงโซล่าเซลล์ไม่สามารถผลิตไฟฟ้าได้ทันภายในระยะเวลาที่ปลูกของพันธุ์นั้นๆ");
             }
             int currentPanels;
             if (req.getSolarCell() != null){
