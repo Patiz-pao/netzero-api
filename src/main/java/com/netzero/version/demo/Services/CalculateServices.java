@@ -217,10 +217,19 @@ public class CalculateServices {
 
         boolean isValidDuration;
         int additionalPanels = 0;
+        int loopCounter = 0;
 
         do {
-            // รีเซ็ตค่าต่างๆ ก่อนคำนวณใหม่
-            final int currentPanels = numberOfPanels + additionalPanels;
+            if (loopCounter > 1000) {
+                throw new IllegalArgumentException("ไม่สามารถคำนวณได้เพราะว่าจำนวนแผงโซล่าเซลล์ไม่สามารถผลิตไฟฟ้าได้ทันภายในระยะเวลาที่ปลูกของพันธุ์นั้นๆ");
+            }
+            int currentPanels;
+            if (req.getSolarCell() != null){
+                // รีเซ็ตค่าต่างๆ ก่อนคำนวณใหม่
+                currentPanels = req.getSolarCell();
+            }else {
+                currentPanels = numberOfPanels + additionalPanels;
+            }
 
             activities = activityManager.calculateActivities(
                     req,
@@ -252,8 +261,8 @@ public class CalculateServices {
                 isValidDuration = true;
             }
 
-
             numberOfPanels = currentPanels;
+            loopCounter++;
 
         } while (!isValidDuration);
 
