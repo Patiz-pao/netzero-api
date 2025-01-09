@@ -7,7 +7,7 @@ import static com.netzero.version.demo.Util.Constants.*;
 @Getter
 
 public enum Rice_Pathum_1_ActivityType implements RiceActivityType {
-    STORE_ELECTRICITY("ช่วงเตรียมพื้นที่","ติดตั้งโซล่าเซลล์และกักเก็บปริมาณไฟฟ้า",0,1),
+    STORE_ELECTRICITY("ช่วงเตรียมพื้นที่","ติดตั้งโซล่าเซลล์",0,1),
     PLOWING_FIRST("ไถดะ (รอบที่ 1)","ใช้รถไถนาไฟฟ้าไถดินลึก 15 - 20 ซม. เพื่อพลิกดินและทำลายวัชพืช หลังไถ ทิ้งดินไว้ให้วัชพืชย่อยสลาย",USE_TRACTOR,1),
     REST_SOIL("ช่วงพักดิน","ทิ้งไว้ 5-6 วัน เพื่อให้ดินปรับตัวและวัชพืชที่ตายย่อยสลาย",0,5),
     PLOWING_SECOND("ไถแปร (รอบที่ 2 )","ใช้รถไถนาไฟฟ้าไถอีกครั้งเพื่อย่อยดินและกำจัดวัชพืช ปรับระดับพื้นที่ให้เรียบ",USE_TRACTOR,1),
