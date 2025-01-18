@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.netzero.version.demo.Util.Constants.*;
-import static com.netzero.version.demo.Util.Constants.PANEL_AREA;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -56,6 +55,7 @@ public class CalculateNewServices {
     private double formatDouble(double value) {
         return Double.parseDouble(String.format("%.2f", value));
     }
+
     private Double parseEnergy(String energy) {
         try {
             return energy != null ? Double.parseDouble(energy) : 0.0;
@@ -143,12 +143,9 @@ public class CalculateNewServices {
         return df.format(value);
     }
 
-    private double getSolarEnergyForMonth(List<Map<String, Object>> monthlyDetail, LocalDate date) {
-        return monthlyDetail.stream()
-                .filter(month -> date.getMonth().toString().substring(0, 3)
-                        .equals(((String) month.get("month")).substring(0, 3)))
-                .mapToDouble(month -> Double.parseDouble((String) month.get("solarEnergy")))
-                .sum();
+    private double getSolarEnergyForMonth(Map<String, Double> monthlyDetail, LocalDate date) {
+        String monthStr = date.getMonth().toString().substring(0, 3).toUpperCase();
+        return monthlyDetail.getOrDefault(monthStr, 0.0); // ถ้าไม่เจอค่าให้คืนค่า 0.0
     }
 
     private GenericResponse<ResultRes> calculateProcess(CalculationReq req) {
@@ -169,33 +166,9 @@ public class CalculateNewServices {
 
         double totalSolarEnergy = 0;
         int monthCount = 0;
+        int numberOfPanels = (req.getSolarCell() == null) ? 1 : req.getSolarCell();
 
-        List<Map<String, Object>> monthlyDetailSolar = new ArrayList<>();
-        for (Map.Entry<String, Double> entry : monthlySolarEnergy.entrySet()) {
-            String month = entry.getKey();
-            double solarEnergy = entry.getValue();
-
-            totalSolarEnergy += solarEnergy;
-            monthCount++;
-
-            Map<String, Object> monthlyResult = Map.of(
-                    "month", month,
-                    "solarEnergy", formatDoubleToString(solarEnergy)
-            );
-
-            monthlyDetailSolar.add(monthlyResult);
-        }
-
-        double averageSolarEnergy = totalSolarEnergy / monthCount;
-
-        int numberOfPanels;
-        if (req.getSolarCell() == null) {
-            numberOfPanels = 1;
-        }else {
-            numberOfPanels = req.getSolarCell();
-        }
-
-        double solarEnergyMonth = getSolarEnergyForMonth(monthlyDetailSolar, startDate);
+        double solarEnergyMonth = getSolarEnergyForMonth(monthlySolarEnergy, startDate);
         double dailyEnergy = solarCalculator.calculateDailyEnergy(solarEnergyMonth, 1); // ต่อ 1 แผง
 
         List<ActivityRes> activities;
@@ -221,7 +194,7 @@ public class CalculateNewServices {
                     startDate,
                     dailyEnergy,
                     currentPanels,
-                    monthlyDetailSolar,
+                    monthlySolarEnergy,
                     Double.parseDouble(req.getArea())
             );
 
@@ -273,6 +246,8 @@ public class CalculateNewServices {
 
             monthlyDetail.add(monthlyResult);
         }
+
+        double averageSolarEnergy = totalSolarEnergy / monthCount;
 
         double totalElectricity = monthlyDetail.stream()
                 .mapToDouble(month -> (double) month.get("totalkWh"))

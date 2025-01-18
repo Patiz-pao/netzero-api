@@ -25,12 +25,11 @@ public class RiceActivityManager {
             LocalDate startDate,
             double dailyEnergy,
             int numberOfPanels,
-            List<Map<String, Object>> monthlyDetail,
+            Map<String, Double> monthlySolarEnergy,
             double areaInRai
     ) {
         List<ActivityRes> activities = new ArrayList<>();
         LocalDate currentDate = startDate;
-        double currentElectricity = 0;
         int currentPanels = numberOfPanels;
 
         Enum<?>[] activityTypes = getActivityTypes(req);
@@ -41,15 +40,13 @@ public class RiceActivityManager {
              ActivityRes activity = processActivity(
                     activityType,
                     currentDate,
-                    currentElectricity,
                     dailyEnergy,
                     currentPanels,
-                    currentPanels,
-                    monthlyDetail,areaInRai
+                    monthlySolarEnergy,
+                    areaInRai
              );
             activities.add(activity);
             currentDate = activity.getEndDate().plusDays(1);
-            currentElectricity = activity.getRemainingElectricity();
         }
 
         return activities;
@@ -58,15 +55,13 @@ public class RiceActivityManager {
     private ActivityRes processActivity(
             RiceActivityType activityType,
             LocalDate currentDate,
-            double initialElectricity,
             double dailyEnergy,
             int panels,
-            int panelsAdded,
-            List<Map<String, Object>> monthlyDetail,
+            Map<String, Double> monthlySolarEnergy,
             double areaInRai
     ) {
 
-        double solarEnergyMonth = getSolarEnergyForMonth(monthlyDetail, currentDate);
+        double solarEnergyMonth = getSolarEnergyForMonth(monthlySolarEnergy, currentDate);
         double dailyEnergyForActivity = solarCalculator.calculateDailyEnergy(solarEnergyMonth, panels); // พลังงานที่ผลิตได้ต่อวัน เอาไว้ใช้ Debug ดูเฉยๆ ไม่ต้องลบออก
 
         double electricity = 0;
@@ -102,12 +97,10 @@ public class RiceActivityManager {
         );
     }
 
-    private double getSolarEnergyForMonth(List<Map<String, Object>> monthlyDetail, LocalDate date) {
-        return monthlyDetail.stream()
-                .filter(month -> date.getMonth().toString().substring(0, 3)
-                        .equals(((String) month.get("month")).substring(0, 3)))
-                .mapToDouble(month -> Double.parseDouble((String) month.get("solarEnergy")))
-                .sum();
+    private double getSolarEnergyForMonth(Map<String, Double> monthlySolarEnergy, LocalDate date) {
+        String monthStr = date.getMonth().toString().substring(0, 3).toUpperCase();
+        Object solarEnergy = monthlySolarEnergy.get(monthStr);
+        return solarEnergy != null ? (double) solarEnergy : 0.0;
     }
 
     private static Enum<?>[] getActivityTypes(CalculationReq req) {
