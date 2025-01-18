@@ -237,7 +237,7 @@ public class CalculateServices {
                     startDate,
                     dailyEnergy,
                     currentPanels,
-                    monthlyDetailSolar,
+                    (Map<String, Double>) monthlyDetailSolar,
                     Double.parseDouble(req.getArea())
             );
 
