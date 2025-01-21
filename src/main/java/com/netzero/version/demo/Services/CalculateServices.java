@@ -1,6 +1,5 @@
 package com.netzero.version.demo.Services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netzero.version.demo.Entity.*;
 import com.netzero.version.demo.Repository.*;
 import com.netzero.version.demo.Services.Activity.RiceActivityManager;
@@ -11,10 +10,8 @@ import com.netzero.version.demo.domain.CalculationReq;
 import com.netzero.version.demo.domain.ResultRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.text.DecimalFormat;
@@ -28,82 +25,39 @@ import static com.netzero.version.demo.Util.Constants.*;
 @RequiredArgsConstructor
 @Service
 public class CalculateServices {
+    private final SolarEnergyCalculator solarCalculator;
+    private final RiceActivityManager activityManager;
+
+    private final RiceTypeRepo riceTypeRepo;
+    private final EnergyReqRepo energyReqRepo;
+    private final CentralRepo centralRepo;
+    private final SolarIntRepo solarIntRepo;
 
     private final AreaDataRepo areaDataRepo;
     private final DataRepo dataRepo;
     private final ElectricityDataRepo electricityDataRepo;
     private final LocationRepo locationRepo;
-    private final SolarEnergyRepo solarEnergyRepo;
 
-    private final SolarEnergyCalculator solarCalculator;
-    private final RiceActivityManager activityManager;
-
-    // Load CSV from API
-    @Cacheable("apiDataCache")
-    private List<String[]> loadCSV() {
-        try {
-            RestTemplate restTemplate = new RestTemplate();
-            String jsonResponse = restTemplate.getForObject(API_URL, String.class);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> responseMap = objectMapper.readValue(jsonResponse, Map.class);
-
-            if (responseMap != null && "success".equals(responseMap.get("status"))) {
-                List<Map<String, Object>> apiData = (List<Map<String, Object>>) responseMap.get("data");
-
-                List<String[]> processedData = new ArrayList<>();
-
-                processedData.add(new String[]{
-                        "Province", "Amphoe", "Tumbol", "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-                        "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
-                        "Rice"
-                });
-
-                for (Map<String, Object> row : apiData) {
-                    String[] dataRow = new String[20];
-                    dataRow[0] = (String) row.get("Province");
-                    dataRow[1] = (String) row.get("Amphoe");
-                    dataRow[2] = (String) row.get("Tumbol");
-                    dataRow[3] = String.valueOf(row.get("JAN"));
-                    dataRow[4] = String.valueOf(row.get("FEB"));
-                    dataRow[5] = String.valueOf(row.get("MAR"));
-                    dataRow[6] = String.valueOf(row.get("APR"));
-                    dataRow[7] = String.valueOf(row.get("MAY"));
-                    dataRow[8] = String.valueOf(row.get("JUN"));
-                    dataRow[9] = String.valueOf(row.get("JUL"));
-                    dataRow[10] = String.valueOf(row.get("AUG"));
-                    dataRow[11] = String.valueOf(row.get("SEP"));
-                    dataRow[12] = String.valueOf(row.get("OCT"));
-                    dataRow[13] = String.valueOf(row.get("NOV"));
-                    dataRow[14] = String.valueOf(row.get("DEC"));
-                    dataRow[15] = String.valueOf(row.get("Rice"));
-
-                    processedData.add(dataRow);
-                }
-
-                return processedData;
-            } else {
-                log.error("Failed to retrieve data from API");
-                return null;
-            }
-        } catch (Exception e) {
-            log.error("Error loading data from API: ", e);
-            return null;
+    public GenericResponse<ResultRes> checkValue(CalculationReq req) {
+        if (req.getCrop_type().equals("rice-rd47") || req.getCrop_type().equals("rice-rd61") ||
+                req.getCrop_type().equals("rice-rd57") || req.getCrop_type().equals("rice-pathum-thani-1") ||
+                req.getCrop_type().equals("rice-phitsanulok-2")) {
+            return calculateProcess(req);
+        } else {
+            return new GenericResponse<>(HttpStatus.BAD_REQUEST, "Invalid data");
         }
     }
 
-    // Function Constants
     private double formatDouble(double value) {
         return Double.parseDouble(String.format("%.2f", value));
     }
 
-    private double getRequiredElectricityRice(String tumbol, List<String[]> data) {
-        for (String[] row : data) {
-            if (row[2].equals(tumbol)) {
-                return Double.parseDouble(row[15]);
-            }
+    private Double parseEnergy(String energy) {
+        try {
+            return energy != null ? Double.parseDouble(energy) : 0.0;
+        } catch (NumberFormatException e) {
+            return 0.0;
         }
-        throw new IllegalArgumentException("Invalid tumbol");
     }
 
     private List<String> generateMonthInRange(LocalDate startDate, LocalDate endDate) {
@@ -124,16 +78,56 @@ public class CalculateServices {
         return result;
     }
 
-    private Map<String, Double> getSolarEnergyEachMonth(String tumbol, List<String[]> data, List<String> selectMonths) {
+    private Map<String, Double> getSolarEnergyEachMonth(String regionId, List<SolarIntEntity> data, List<String> selectMonths) {
         Map<String, Double> energyPerMonth = new LinkedHashMap<>();
         for (String month : selectMonths) {
             Integer index = MONTH_INDEX.get(month);
             if (index == null) {
                 throw new IllegalArgumentException("Invalid month: " + month);
             }
-            for (String[] row : data) {
-                if (row[2].equals(tumbol)) {
-                    energyPerMonth.put(month, Double.parseDouble(row[index]));
+            for (SolarIntEntity entity : data) {
+                if (regionId.equals(entity.getRegionId())) {
+                    switch (month.toLowerCase()) {
+                        case "jan":
+                            energyPerMonth.put(month, parseEnergy(entity.getJan()));
+                            break;
+                        case "feb":
+                            energyPerMonth.put(month, parseEnergy(entity.getFeb()));
+                            break;
+                        case "mar":
+                            energyPerMonth.put(month, parseEnergy(entity.getMar()));
+                            break;
+                        case "apr":
+                            energyPerMonth.put(month, parseEnergy(entity.getApr()));
+                            break;
+                        case "may":
+                            energyPerMonth.put(month, parseEnergy(entity.getMay()));
+                            break;
+                        case "jun":
+                            energyPerMonth.put(month, parseEnergy(entity.getJun()));
+                            break;
+                        case "jul":
+                            energyPerMonth.put(month, parseEnergy(entity.getJul()));
+                            break;
+                        case "aug":
+                            energyPerMonth.put(month, parseEnergy(entity.getAug()));
+                            break;
+                        case "sep":
+                            energyPerMonth.put(month, parseEnergy(entity.getSep()));
+                            break;
+                        case "oct":
+                            energyPerMonth.put(month, parseEnergy(entity.getOct()));
+                            break;
+                        case "nov":
+                            energyPerMonth.put(month, parseEnergy(entity.getNov()));
+                            break;
+                        case "dec":
+                            energyPerMonth.put(month, parseEnergy(entity.getDec()));
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Invalid month: " + month);
+                    }
+                    break;
                 }
             }
         }
@@ -145,73 +139,66 @@ public class CalculateServices {
         return df.format(value);
     }
 
-    private double getSolarEnergyForMonth(List<Map<String, Object>> monthlyDetail, LocalDate date) {
-        return monthlyDetail.stream()
-                .filter(month -> date.getMonth().toString().substring(0, 3)
-                        .equals(((String) month.get("month")).substring(0, 3)))
-                .mapToDouble(month -> Double.parseDouble((String) month.get("solarEnergy")))
-                .sum();
+    private double getSolarEnergyForMonth(Map<String, Double> monthlyDetail, LocalDate date) {
+        String monthStr = date.getMonth().toString().substring(0, 3).toUpperCase();
+        return monthlyDetail.getOrDefault(monthStr, 0.0); // ถ้าไม่เจอค่าให้คืนค่า 0.0
     }
 
-    // Normal Mode
-    public GenericResponse<ResultRes> calculateRice(CalculationReq req) {
-        List<String[]> data = loadCSV();
+    private void saveData(String responseId, CalculationReq req, double area, double areaUsed, double areaRemaining, double requiredElectricity, double totalElectricity, double surplusElectricity) {
+        // Save Location Data
+        LocationEntity locationDetail = new LocationEntity();
+        locationDetail.setResponseId(responseId);
+        locationDetail.setProvince(req.getProvince());
+        locationDetail.setAmphoe(req.getAmphoe());
+        locationDetail.setTumbol(req.getTumbol());
+        locationRepo.save(locationDetail);
 
-        if (data != null) {
-            return switch (req.getCrop_type()) {
-                case "rice-rd47", "rice-rd61", "rice-rd57", "rice-pathum-thani-1", "rice-phitsanulok-2" ->
-                        handleRiceCalculation(req, data);
-                default -> new GenericResponse<>(HttpStatus.BAD_REQUEST, "Invalid data");
-            };
-        }
+        // Save Area Data
+        AreaDataEntity areaData = new AreaDataEntity();
+        areaData.setResponseId(responseId);
+        areaData.setTotalArea(formatDoubleToString(area));
+        areaData.setUsedArea(formatDoubleToString(areaUsed));
+        areaData.setRemainingArea(formatDoubleToString(areaRemaining));
+        areaDataRepo.save(areaData);
 
-        return new GenericResponse<>(HttpStatus.BAD_REQUEST, "Invalid data");
+        // Save Electricity Data
+        ElectricityDataEntity electricityData = new ElectricityDataEntity();
+        electricityData.setResponseId(responseId);
+        electricityData.setElectricityRequired(formatDoubleToString(requiredElectricity));
+        electricityData.setElectricityProduced(formatDoubleToString(totalElectricity));
+        electricityData.setElectricitySurplus(formatDoubleToString(surplusElectricity));
+        electricityDataRepo.save(electricityData);
+
+        // Save Data Entity
+        DataEntity dataEntity = new DataEntity();
+        dataEntity.setResponseId(responseId);
+        dataEntity.setCropType(req.getCrop_type());
+        dataEntity.setAreaSize(req.getArea());
+        dataEntity.setSolarPanelCount(req.getSolarCell());
+        dataRepo.save(dataEntity);
     }
 
-    private GenericResponse<ResultRes> handleRiceCalculation(CalculationReq req, List<String[]> data) {
-        String rai = req.getArea();
-        String tumbol = req.getTumbol();
-        double area = Double.parseDouble(rai) * 1600;
+    private GenericResponse<ResultRes> calculateProcess(CalculationReq req) {
 
-        double requiredElectricity = getRequiredElectricityRice(tumbol, data);
-        double requiredElectricityNew = requiredElectricity * (area / 1600);
+        RiceTypeEntity riceType = riceTypeRepo.findByRiceName(req.getCrop_type());
+        EnergyReqEntity energyReq = energyReqRepo.findByTypeId(riceType.getTypeId());
+        List<SolarIntEntity> data = solarIntRepo.findAll();
+        CentralEntity region = centralRepo.findByTumbol(req.getTumbol());
+
+        double area = Double.parseDouble(req.getArea()) * 1600;
+        double requiredElectricity = energyReq.getTotalEnergy() * (area / 1600);
 
         LocalDate startDate = req.getMonth_start();
         LocalDate endDate = startDate.plusMonths(4);
 
         List<String> selectMonths = generateMonthInRange(startDate, endDate);
-        Map<String, Double> monthlySolarEnergy = getSolarEnergyEachMonth(tumbol, data, selectMonths);
+        Map<String, Double> monthlySolarEnergy = getSolarEnergyEachMonth(region.getRegionId(), data, selectMonths);
 
         double totalSolarEnergy = 0;
         int monthCount = 0;
+        int numberOfPanels = (req.getSolarCell() == null) ? 1 : req.getSolarCell();
 
-        List<Map<String, Object>> monthlyDetailSolar = new ArrayList<>();
-        for (Map.Entry<String, Double> entry : monthlySolarEnergy.entrySet()) {
-            String month = entry.getKey();
-            double solarEnergy = entry.getValue();
-
-            totalSolarEnergy += solarEnergy;
-            monthCount++;
-
-            Map<String, Object> monthlyResult = Map.of(
-                    "month", month,
-                    "solarEnergy", formatDoubleToString(solarEnergy),
-                    "totalkWh", formatDouble(0)
-            );
-
-            monthlyDetailSolar.add(monthlyResult);
-        }
-
-        double averageSolarEnergy = totalSolarEnergy / monthCount;
-
-        int numberOfPanels;
-        if (req.getSolarCell() == null) {
-            numberOfPanels = 1;
-        }else {
-            numberOfPanels = req.getSolarCell();
-        }
-
-        double solarEnergyMonth = getSolarEnergyForMonth(monthlyDetailSolar, startDate);
+        double solarEnergyMonth = getSolarEnergyForMonth(monthlySolarEnergy, startDate);
         double dailyEnergy = solarCalculator.calculateDailyEnergy(solarEnergyMonth, 1); // ต่อ 1 แผง
 
         List<ActivityRes> activities;
@@ -237,7 +224,7 @@ public class CalculateServices {
                     startDate,
                     dailyEnergy,
                     currentPanels,
-                    (Map<String, Double>) monthlyDetailSolar,
+                    monthlySolarEnergy,
                     Double.parseDouble(req.getArea())
             );
 
@@ -290,6 +277,8 @@ public class CalculateServices {
             monthlyDetail.add(monthlyResult);
         }
 
+        double averageSolarEnergy = totalSolarEnergy / monthCount;
+
         double totalElectricity = monthlyDetail.stream()
                 .mapToDouble(month -> (double) month.get("totalkWh"))
                 .sum();
@@ -300,11 +289,11 @@ public class CalculateServices {
                 .mapToDouble(ActivityRes::getElectricityGenerated)
                 .sum();
 
-        double surplusElectricity =  totalElectricity - requiredElectricityNew;
+        double surplusElectricity =  totalElectricity - requiredElectricity;
         double areaUsed = numberOfPanels * PANEL_AREA;
         double areaRemaining = area - areaUsed;
 
-        int areaRai = Integer.parseInt(rai);
+        int areaRai = Integer.parseInt(req.getArea());
 
         int ResultRice = switch (req.getCrop_type()) {
             case "rice-rd47" -> 793 * areaRai;
@@ -319,11 +308,11 @@ public class CalculateServices {
                 req.getArea(),
                 formatDouble(averageSolarEnergy),
                 numberOfPanels,
-                requiredElectricityNew,
+                formatDouble(requiredElectricity),
                 formatDouble(totalUsed),
-                formatDouble(totalUsed - requiredElectricityNew),
+                formatDouble(totalUsed - requiredElectricity),
                 totalElectricity,
-                surplusElectricity,
+                formatDouble(surplusElectricity),
                 areaUsed,
                 areaRemaining,
                 ResultRice,
@@ -331,58 +320,19 @@ public class CalculateServices {
                 activities
         );
 
-        // Create response_id
+        // Save ALL DATA
         String responseId = UUID.randomUUID().toString();
-
-        // LocationEntity
-        LocationEntity locationDetail = new LocationEntity();
-        locationDetail.setResponseId(responseId);
-        locationDetail.setProvince(req.getProvince());
-        locationDetail.setAmphoe(req.getAmphoe());
-        locationDetail.setTumbol(req.getTumbol());
-        locationRepo.save(locationDetail);
-
-        // AreaDataEntity
-        AreaDataEntity areaData = new AreaDataEntity();
-        areaData.setResponseId(responseId);
-        areaData.setTotalArea(formatDoubleToString(area));
-        areaData.setUsedArea(formatDoubleToString(areaUsed));
-        areaData.setRemainingArea(formatDoubleToString(areaRemaining));
-        areaDataRepo.save(areaData);
-
-        // ElectricityDataEntity
-        ElectricityDataEntity electricityData = new ElectricityDataEntity();
-        electricityData.setResponseId(responseId);
-        electricityData.setElectricityRequired(formatDoubleToString(requiredElectricityNew));
-        electricityData.setElectricityProduced(formatDoubleToString(totalElectricity));
-        electricityData.setElectricitySurplus(formatDoubleToString(surplusElectricity));
-        electricityDataRepo.save(electricityData);
-
-        // DataEntity
-        DataEntity dataEntity = new DataEntity();
-        dataEntity.setResponseId(responseId);
-        dataEntity.setCropType(req.getCrop_type());
-        dataEntity.setAreaSize(req.getArea());
-        dataEntity.setSolarPanelCount(req.getSolarCell());
-        dataRepo.save(dataEntity);
-
-        // SolarEnergyEntity
-        SolarEnergyEntity solarEnergy = new SolarEnergyEntity();
-        solarEnergy.setResponseId(responseId);
-
-        double averageSolarIntensity = totalSolarEnergy / 4;
-        solarEnergy.setSolarIntensity(formatDoubleToString(averageSolarIntensity));
-
-        Integer solarCell = req.getSolarCell();
-        if (solarCell == null) {
-            solarCell = numberOfPanels;
-        }
-        solarEnergy.setSolarPanelCount(solarCell);
-
-        solarEnergyRepo.save(solarEnergy);
+        saveData(
+                responseId,
+                req,
+                area,
+                areaUsed,
+                areaRemaining,
+                requiredElectricity,
+                totalElectricity,
+                surplusElectricity
+        );
 
         return new GenericResponse<>(HttpStatus.OK, "Success", result);
     }
-
-    // End of Normal Mode
 }
