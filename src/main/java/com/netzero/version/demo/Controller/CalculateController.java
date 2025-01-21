@@ -1,6 +1,6 @@
 package com.netzero.version.demo.Controller;
 
-import com.netzero.version.demo.Services.CalculateNewServices;
+import com.netzero.version.demo.Services.CalculateOldServices;
 import com.netzero.version.demo.Services.CalculateServices;
 import com.netzero.version.demo.Util.GenericResponse;
 import com.netzero.version.demo.domain.CalculationReq;
@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class CalculateController {
 
+    private CalculateOldServices calculateOldServices;
     private CalculateServices calculateServices;
-    private CalculateNewServices calculateNewServices;
 
     @PostMapping("/calculate")
     @Operation(
@@ -47,7 +47,7 @@ public class CalculateController {
     )
     public GenericResponse<ResultRes> calculateRice(@RequestBody CalculationReq req){
 //        GenericResponse<ResultRes> response = calculateServices.calculateRice(req);
-        GenericResponse<ResultRes> response = calculateNewServices.checkValue(req);
+        GenericResponse<ResultRes> response = calculateServices.checkValue(req);
         log.info("success");
         return response;
     }
