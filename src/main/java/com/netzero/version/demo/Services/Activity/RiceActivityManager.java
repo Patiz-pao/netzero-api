@@ -103,7 +103,7 @@ public class RiceActivityManager {
         return solarEnergy != null ? (double) solarEnergy : 0.0;
     }
 
-    private static Enum<?>[] getActivityTypes(CalculationReq req) {
+    public static Enum<?>[] getActivityTypes(CalculationReq req) {
         Enum<?>[] activityTypes;
 
         if ("rice-rd47".equals(req.getCrop_type())) {

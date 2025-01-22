@@ -1,6 +1,6 @@
 package com.netzero.version.demo.Controller;
 
-import com.netzero.version.demo.Services.CalculateOldServices;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netzero.version.demo.Services.CalculateServices;
 import com.netzero.version.demo.Util.GenericResponse;
 import com.netzero.version.demo.domain.CalculationReq;
@@ -18,8 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor
 public class CalculateController {
-
-    private CalculateOldServices calculateOldServices;
     private CalculateServices calculateServices;
 
     @PostMapping("/calculate")
@@ -45,8 +43,7 @@ public class CalculateController {
                     )
             )
     )
-    public GenericResponse<ResultRes> calculateRice(@RequestBody CalculationReq req){
-//        GenericResponse<ResultRes> response = calculateServices.calculateRice(req);
+    public GenericResponse<ResultRes> calculateRice(@RequestBody CalculationReq req) throws JsonProcessingException {
         GenericResponse<ResultRes> response = calculateServices.checkValue(req);
         log.info("success");
         return response;
