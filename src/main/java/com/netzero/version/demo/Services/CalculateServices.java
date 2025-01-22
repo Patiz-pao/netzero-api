@@ -1,12 +1,27 @@
 package com.netzero.version.demo.Services;
 
-import com.netzero.version.demo.Entity.*;
-import com.netzero.version.demo.Repository.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netzero.version.demo.Entity.CentralEntity;
+import com.netzero.version.demo.Entity.EnergyReqEntity;
+import com.netzero.version.demo.Entity.HistoryEntity.HistoryActivitiesEntity;
+import com.netzero.version.demo.Entity.HistoryEntity.HistoryDataEntity;
+import com.netzero.version.demo.Entity.HistoryEntity.HistoryMonthlyEntity;
+import com.netzero.version.demo.Entity.RiceTypeEntity;
+import com.netzero.version.demo.Entity.SolarIntEntity;
+import com.netzero.version.demo.Repository.CentralRepo;
+import com.netzero.version.demo.Repository.EnergyReqRepo;
+import com.netzero.version.demo.Repository.HistoryRepo.HistoryActivitiesRepo;
+import com.netzero.version.demo.Repository.HistoryRepo.HistoryDataRepo;
+import com.netzero.version.demo.Repository.HistoryRepo.HistoryMonthlyRepo;
+import com.netzero.version.demo.Repository.RiceTypeRepo;
+import com.netzero.version.demo.Repository.SolarIntRepo;
 import com.netzero.version.demo.Services.Activity.RiceActivityManager;
 import com.netzero.version.demo.Services.Activity.SolarEnergyCalculator;
 import com.netzero.version.demo.Util.GenericResponse;
 import com.netzero.version.demo.domain.ActivityRes;
 import com.netzero.version.demo.domain.CalculationReq;
+import com.netzero.version.demo.domain.Enums.interfaceClass.RiceActivityType;
 import com.netzero.version.demo.domain.ResultRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,9 +31,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+import static com.netzero.version.demo.Services.Activity.RiceActivityManager.getActivityTypes;
 import static com.netzero.version.demo.Util.Constants.*;
 
 @Slf4j
@@ -33,12 +50,11 @@ public class CalculateServices {
     private final CentralRepo centralRepo;
     private final SolarIntRepo solarIntRepo;
 
-    private final AreaDataRepo areaDataRepo;
-    private final DataRepo dataRepo;
-    private final ElectricityDataRepo electricityDataRepo;
-    private final LocationRepo locationRepo;
+    private final HistoryDataRepo historyDataRepo;
+    private final HistoryMonthlyRepo historyMonthlyRepo;
+    private final HistoryActivitiesRepo historyActivitiesRepo;
 
-    public GenericResponse<ResultRes> checkValue(CalculationReq req) {
+    public GenericResponse<ResultRes> checkValue(CalculationReq req) throws JsonProcessingException {
         if (req.getCrop_type().equals("rice-rd47") || req.getCrop_type().equals("rice-rd61") ||
                 req.getCrop_type().equals("rice-rd57") || req.getCrop_type().equals("rice-pathum-thani-1") ||
                 req.getCrop_type().equals("rice-phitsanulok-2")) {
@@ -144,41 +160,40 @@ public class CalculateServices {
         return monthlyDetail.getOrDefault(monthStr, 0.0); // ถ้าไม่เจอค่าให้คืนค่า 0.0
     }
 
-    private void saveData(String responseId, CalculationReq req, double area, double areaUsed, double areaRemaining, double requiredElectricity, double totalElectricity, double surplusElectricity) {
-        // Save Location Data
-        LocationEntity locationDetail = new LocationEntity();
-        locationDetail.setResponseId(responseId);
-        locationDetail.setProvince(req.getProvince());
-        locationDetail.setAmphoe(req.getAmphoe());
-        locationDetail.setTumbol(req.getTumbol());
-        locationRepo.save(locationDetail);
+    private Map<String, Object> calculateEnergyToolsUsage(CalculationReq req, double areaInRai) {
 
-        // Save Area Data
-        AreaDataEntity areaData = new AreaDataEntity();
-        areaData.setResponseId(responseId);
-        areaData.setTotalArea(formatDoubleToString(area));
-        areaData.setUsedArea(formatDoubleToString(areaUsed));
-        areaData.setRemainingArea(formatDoubleToString(areaRemaining));
-        areaDataRepo.save(areaData);
+        Enum<?>[] activityTypes = getActivityTypes(req);
 
-        // Save Electricity Data
-        ElectricityDataEntity electricityData = new ElectricityDataEntity();
-        electricityData.setResponseId(responseId);
-        electricityData.setElectricityRequired(formatDoubleToString(requiredElectricity));
-        electricityData.setElectricityProduced(formatDoubleToString(totalElectricity));
-        electricityData.setElectricitySurplus(formatDoubleToString(surplusElectricity));
-        electricityDataRepo.save(electricityData);
+        double totalEnergyTractors = 0.0;
+        double totalEnergyWaterPump = 0.0;
+        double totalEnergyDrone = 0.0;
 
-        // Save Data Entity
-        DataEntity dataEntity = new DataEntity();
-        dataEntity.setResponseId(responseId);
-        dataEntity.setCropType(req.getCrop_type());
-        dataEntity.setAreaSize(req.getArea());
-        dataEntity.setSolarPanelCount(req.getSolarCell());
-        dataRepo.save(dataEntity);
+        for (Enum<?> activityEnum : activityTypes) {
+            RiceActivityType activity = (RiceActivityType) activityEnum;
+
+            if (activity.getBaseElectricityRequired() > 0) {
+                double energyForThisActivity = activity.getElectricityRequired(areaInRai);
+
+                if (activity.getBaseElectricityRequired() == USE_TRACTOR) {
+                    totalEnergyTractors += energyForThisActivity;
+                } else if (activity.getBaseElectricityRequired() == USE_WATER_PUMP) {
+                    totalEnergyWaterPump += energyForThisActivity;
+                } else if (activity.getBaseElectricityRequired() == USE_DRONE) {
+                    totalEnergyDrone += energyForThisActivity;
+                }
+            }
+        }
+
+        // สร้างผลลัพธ์ที่ต้องการ
+        Map<String, Object> result = new HashMap<>();
+        result.put("totalEnergyTractors", totalEnergyTractors);
+        result.put("totalEnergyWaterPump", totalEnergyWaterPump);
+        result.put("totalEnergyDrone", totalEnergyDrone);
+
+        return result;
     }
 
-    private GenericResponse<ResultRes> calculateProcess(CalculationReq req) {
+    private GenericResponse<ResultRes> calculateProcess(CalculationReq req) throws JsonProcessingException {
 
         RiceTypeEntity riceType = riceTypeRepo.findByRiceName(req.getCrop_type());
         EnergyReqEntity energyReq = energyReqRepo.findByTypeId(riceType.getTypeId());
@@ -207,15 +222,16 @@ public class CalculateServices {
         int additionalPanels = 0;
         int loopCounter = 0;
 
+        LocalDate lastEndDate;
         do {
             if (loopCounter > 1000) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ไม่สามารถคำนวณได้เพราะว่าจำนวนแผงโซล่าเซลล์ไม่สามารถผลิตไฟฟ้าได้ทันภายในระยะเวลาที่ปลูกของพันธุ์นั้นๆ");
             }
             int currentPanels;
-            if (req.getSolarCell() != null){
+            if (req.getSolarCell() != null) {
                 // รีเซ็ตค่าต่างๆ ก่อนคำนวณใหม่
                 currentPanels = req.getSolarCell();
-            }else {
+            } else {
                 currentPanels = numberOfPanels + additionalPanels;
             }
 
@@ -229,7 +245,7 @@ public class CalculateServices {
             );
 
             LocalDate firstStartDate = activities.get(0).getStartDate();
-            LocalDate lastEndDate = activities.get(activities.size() - 1).getEndDate();
+            lastEndDate = activities.get(activities.size() - 1).getEndDate();
 
             long totalDuration = ChronoUnit.DAYS.between(firstStartDate, lastEndDate);
 
@@ -289,7 +305,13 @@ public class CalculateServices {
                 .mapToDouble(ActivityRes::getElectricityGenerated)
                 .sum();
 
-        double surplusElectricity =  totalElectricity - requiredElectricity;
+        Map<String, Object> energyUsageDetails = calculateEnergyToolsUsage(req, Double.parseDouble(req.getArea()));
+
+        double totalEnergyTractors = (double) energyUsageDetails.get("totalEnergyTractors");
+        double totalEnergyWaterPump = (double) energyUsageDetails.get("totalEnergyWaterPump");
+        double totalEnergyDrone = (double) energyUsageDetails.get("totalEnergyDrone");
+
+        double surplusElectricity = totalElectricity - requiredElectricity;
         double areaUsed = numberOfPanels * PANEL_AREA;
         double areaRemaining = area - areaUsed;
 
@@ -311,7 +333,7 @@ public class CalculateServices {
                 formatDouble(requiredElectricity),
                 formatDouble(totalUsed),
                 formatDouble(totalUsed - requiredElectricity),
-                totalElectricity,
+                formatDouble(totalElectricity),
                 formatDouble(surplusElectricity),
                 areaUsed,
                 areaRemaining,
@@ -320,19 +342,71 @@ public class CalculateServices {
                 activities
         );
 
-        // Save ALL DATA
-        String responseId = UUID.randomUUID().toString();
         saveData(
-                responseId,
                 req,
-                area,
+                totalUsed,
+                averageSolarEnergy,
+                totalEnergyTractors,
+                totalEnergyWaterPump,
+                totalEnergyDrone,
+                numberOfPanels,
                 areaUsed,
                 areaRemaining,
                 requiredElectricity,
                 totalElectricity,
-                surplusElectricity
-        );
+                surplusElectricity,
+                ResultRice,
+                activities,
+                monthlyDetail,
+                region.getRegionId(),
+                riceType.getTypeId(),
+                lastEndDate
+                );
 
         return new GenericResponse<>(HttpStatus.OK, "Success", result);
+    }
+
+    private void saveData(CalculationReq req,double totalUsed, double averageSolarEnergy, double totalEnergyTractors, double totalEnergyWaterPump, double totalEnergyDrone, int numberOfPanels, double areaUsed, double areaRemaining, double requiredElectricity, double totalElectricity, double surplusElectricity, int ResultRice, List<ActivityRes> activities, List<Map<String, Object>> monthlyDetail, String regionId, String typeId, LocalDate lastEndDate) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+
+        String historyId = UUID.randomUUID().toString();
+
+        HistoryDataEntity historyData = new HistoryDataEntity();
+        historyData.setHistoryId(historyId);
+        historyData.setRegionId(regionId);
+        historyData.setTypeId(typeId);
+        historyData.setCreatedDate(LocalDateTime.now());
+        historyData.setSolarEnergyIntensity(formatDouble(averageSolarEnergy));
+        historyData.setNumberOfPanels(numberOfPanels);
+        historyData.setRequiredElectricity(formatDouble(requiredElectricity));
+        historyData.setProducedElectricity(formatDouble(totalElectricity));
+        historyData.setSurplusElectricity(formatDouble(surplusElectricity));
+        historyData.setUsableElectricity(formatDouble(totalUsed));
+        historyData.setSurplusElectricityUsable(formatDouble(totalUsed - requiredElectricity));
+        historyData.setAreaUsed(areaUsed);
+        historyData.setAreaRemaining(areaRemaining);
+        historyData.setResultRice(ResultRice);
+        historyData.setEnergyTractor(totalEnergyTractors);
+        historyData.setEnergyDrone(totalEnergyDrone);
+        historyData.setEnergyWaterPumping(totalEnergyWaterPump);
+        historyData.setStartDate(req.getMonth_start());
+        historyData.setEndDate(lastEndDate);
+        historyDataRepo.save(historyData);
+
+        String activitiesJsonNode = objectMapper.writeValueAsString(activities);
+        HistoryActivitiesEntity activityEntity = new HistoryActivitiesEntity();
+        activityEntity.setActivityId(UUID.randomUUID().toString());
+        activityEntity.setHistoryId(historyId);
+        activityEntity.setActivities(activitiesJsonNode);
+        historyActivitiesRepo.save(activityEntity);
+
+        String monthlyDetailsJsonNode = objectMapper.writeValueAsString(monthlyDetail);
+        HistoryMonthlyEntity monthlyEntity = new HistoryMonthlyEntity();
+        monthlyEntity.setMonthlyDetailId(UUID.randomUUID().toString());
+        monthlyEntity.setHistoryId(historyId);
+        monthlyEntity.setMonthlyData(monthlyDetailsJsonNode);
+        historyMonthlyRepo.save(monthlyEntity);
+
     }
 }

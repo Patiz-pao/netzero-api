@@ -53,31 +53,4 @@ public class Constants {
     public static final double USE_TRACTOR = 31.5;
     public static final double USE_WATER_PUMP = 29.7;
     public static final double USE_DRONE = 7.2;
-
-    public static final double BATTERY_CAPACITY = 15.0;
-
-    private static final String CACHE_KEY = "api_response";
-
-    @Setter
-    private static RedisTemplate<String, String> redisTemplate;
-
-    public static String getApiResponse(){
-        if (redisTemplate == null){
-            throw new IllegalStateException("RedisTemplate is not initialized. Please set it using setRedisTemplate().");
-        }
-
-        String cacheResponse = redisTemplate.opsForValue().get(CACHE_KEY);
-        if (cacheResponse != null){
-            return cacheResponse;
-        }
-
-        RestTemplate restTemplate = new RestTemplate();
-        String apiResponse = restTemplate.getForObject(API_URL, String.class);
-
-        if (apiResponse != null){
-            redisTemplate.opsForValue().set(CACHE_KEY, apiResponse, 1, TimeUnit.HOURS);
-        }
-
-        return apiResponse;
-    }
 }

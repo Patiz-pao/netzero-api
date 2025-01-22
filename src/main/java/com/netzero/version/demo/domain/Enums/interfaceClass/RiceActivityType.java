@@ -8,4 +8,6 @@ public interface RiceActivityType {
     String getDescription();
 
     void resetDuration();
+
+    double getBaseElectricityRequired();
 }

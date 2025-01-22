@@ -17,4 +17,6 @@ public class CalculationReq {
     private String crop_type;
     private Integer solarCell;
     private LocalDate month_start;
+
+    public CalculationReq() {}
 }
