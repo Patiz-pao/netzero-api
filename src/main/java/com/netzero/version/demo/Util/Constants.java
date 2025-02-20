@@ -13,9 +13,9 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class Constants {
     public static final int HOURS_OF_SUNLIGHT = 5; // ชั่วโมงแสงแดด
-    public static final double SOLAR_W = 0.60; // ประสิทธิภาพการผลิตพลังงาน
-    public static final double PANEL_EFFICIENCY = 0.2; // ประสิทธิภาพแผง
-    public static final double PANEL_AREA = 2.5; // ขนาดแผง (m^2)
+    public static final double SOLAR_W = 0.71; // ประสิทธิภาพการผลิตพลังงาน
+    public static final double PANEL_EFFICIENCY = 0.2286; // ประสิทธิภาพแผง
+    public static final double PANEL_AREA = 3; // ขนาดแผง (m^2)
 
     public static final String API_URL = "https://script.google.com/macros/s/AKfycby1h6jkUFLSyCyvKH2GWcffr7DnN-IpqgghAnqMfBF5eMCNpp6a-oHi6wxMRa5EyEjY/exec";
 

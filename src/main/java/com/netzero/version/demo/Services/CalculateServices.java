@@ -85,7 +85,7 @@ public class CalculateServices {
         LocalDate current = startDate;
         int monthCount = 0;
 
-        while (!current.isAfter(endDate) && monthCount < 4) {
+        while (!current.isAfter(endDate) && monthCount < 5) {
             result.add(current.getMonth().toString().substring(0, 3).toUpperCase());
             current = current.plusMonths(1);
             monthCount++;
@@ -204,7 +204,7 @@ public class CalculateServices {
         double requiredElectricity = energyReq.getTotalEnergy() * (area / 1600);
 
         LocalDate startDate = req.getMonth_start();
-        LocalDate endDate = startDate.plusMonths(4);
+        LocalDate endDate = startDate.plusMonths(5);
 
         List<String> selectMonths = generateMonthInRange(startDate, endDate);
         Map<String, Double> monthlySolarEnergy = getSolarEnergyEachMonth(region.getRegionId(), data, selectMonths);
@@ -250,11 +250,11 @@ public class CalculateServices {
             long totalDuration = ChronoUnit.DAYS.between(firstStartDate, lastEndDate);
 
             long DayLimit = switch (req.getCrop_type()) {
-                case "rice-rd47" -> 124;
-                case "rice-rd61" -> 118;
-                case "rice-rd57" -> 127;
-                case "rice-pathum-thani-1" -> 125;
-                case "rice-phitsanulok-2" -> 141;
+                case "rice-rd47" -> 140;
+                case "rice-rd61" -> 134;
+                case "rice-rd57" -> 143;
+                case "rice-pathum-thani-1" -> 141;
+                case "rice-phitsanulok-2" -> 157;
                 default -> 0;
             };
 
