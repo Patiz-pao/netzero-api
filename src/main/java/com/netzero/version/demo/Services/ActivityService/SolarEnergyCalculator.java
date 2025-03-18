@@ -1,4 +1,4 @@
-package com.netzero.version.demo.Services.Activity;
+package com.netzero.version.demo.Services.ActivityService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

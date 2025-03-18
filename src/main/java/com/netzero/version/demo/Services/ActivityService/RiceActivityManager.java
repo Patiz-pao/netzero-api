@@ -1,4 +1,4 @@
-package com.netzero.version.demo.Services.Activity;
+package com.netzero.version.demo.Services.ActivityService;
 
 import com.netzero.version.demo.domain.ActivityRes;
 import com.netzero.version.demo.domain.CalculationReq;
@@ -12,6 +12,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static com.netzero.version.demo.Util.Constants.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -106,15 +108,15 @@ public class RiceActivityManager {
     public static Enum<?>[] getActivityTypes(CalculationReq req) {
         Enum<?>[] activityTypes;
 
-        if ("rice-rd47".equals(req.getCrop_type())) {
+        if (RICE_RD47.equals(req.getCrop_type())) {
             activityTypes = Rice_RD47_ActivityType.values();
-        } else if ("rice-rd61".equals(req.getCrop_type())) {
+        } else if (RICE_RD61.equals(req.getCrop_type())) {
             activityTypes = Rice_RD61_ActivityType.values();
-        } else if ("rice-rd57".equals(req.getCrop_type())) {
+        } else if (RICE_RD57.equals(req.getCrop_type())) {
             activityTypes = Rice_RD57_ActivityType.values();
-        } else if ("rice-pathum-thani-1".equals(req.getCrop_type())) {
+        } else if (RICE_PATHUM_THANI_1.equals(req.getCrop_type())) {
             activityTypes = Rice_Pathum_1_ActivityType.values();
-        }else if ("rice-phitsanulok-2".equals(req.getCrop_type())) {
+        }else if (RICE_PHITSANULOK_2.equals(req.getCrop_type())) {
             activityTypes = Rice_Phitsanulok_2_ActivityType.values();
         }else {
             throw new IllegalArgumentException("Unsupported crop type: " + req.getCrop_type());

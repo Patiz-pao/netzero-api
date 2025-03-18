@@ -1,4 +1,4 @@
-package com.netzero.version.demo.Util;
+package com.netzero.version.demo.Configs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

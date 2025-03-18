@@ -2,12 +2,9 @@ package com.netzero.version.demo.Util;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Setter
 @Getter
@@ -17,7 +14,27 @@ public class Constants {
     public static final double PANEL_EFFICIENCY = 0.2286; // ประสิทธิภาพแผง
     public static final double PANEL_AREA = 3; // ขนาดแผง (m^2)
 
-    public static final String API_URL = "https://script.google.com/macros/s/AKfycby1h6jkUFLSyCyvKH2GWcffr7DnN-IpqgghAnqMfBF5eMCNpp6a-oHi6wxMRa5EyEjY/exec";
+    public static final double USE_TRACTOR = 31.5;
+    public static final double USE_WATER_PUMP = 29.7;
+    public static final double USE_DRONE = 7.2;
+
+    public static final String RICE_RD47 = "rice-rd47";
+    public static final String RICE_RD61 = "rice-rd61";
+    public static final String RICE_RD57 = "rice-rd57";
+    public static final String RICE_PATHUM_THANI_1 = "rice-pathum-thani-1";
+    public static final String RICE_PHITSANULOK_2 = "rice-phitsanulok-2";
+
+    public static final int RICE_RD47_DAY = 140;
+    public static final int RICE_RD61_DAY = 134;
+    public static final int RICE_RD57_DAY = 143;
+    public static final int RICE_PATHUM_THANI_1_DAY = 141;
+    public static final int RICE_PHITSANULOK_2_DAY = 157;
+
+    public static final int RICE_RD47_RESULT = 793;
+    public static final int RICE_RD61_RESULT = 1004;
+    public static final int RICE_RD57_RESULT = 714;
+    public static final int RICE_PATHUM_THANI_1_RESULT = 712;
+    public static final int RICE_PHITSANULOK_2_RESULT = 807;
 
     public static final Map<String, Integer> MONTH_INDEX = new HashMap<>();
     static {
@@ -49,8 +66,4 @@ public class Constants {
         put("NOV", 30);
         put("DEC", 31);
     }};
-
-    public static final double USE_TRACTOR = 31.5;
-    public static final double USE_WATER_PUMP = 29.7;
-    public static final double USE_DRONE = 7.2;
 }
